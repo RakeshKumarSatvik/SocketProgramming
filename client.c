@@ -121,10 +121,6 @@ int main(void)
 			s, sizeof s);
 		printf("server: got connection from %s\n", s);
 
-//		close(sockfd); // child doesn't need the listener
-/*		if (send(new_fd, "Hello, world!", 13, 0) == -1)
-			perror("send");*/
-//		bzero(buf,sizeof(buf));
 		if ((numbytes = recv(new_fd, buf, MAXDATASIZE-1, 0)) == -1) {
 		    perror("recv");
 		    exit(1);
@@ -132,8 +128,9 @@ int main(void)
 		buf[numbytes] = '\0';
 
 		printf("client: received '%s'\n",buf);
-//		close(new_fd);  // parent doesn't need this
 	}
+	close(sockfd);
+	close(new_fd);  // don't need this
 
 	return 0;
 }

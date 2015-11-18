@@ -1,2 +1,2 @@
 serverB	20
-serverc	10
+serverC	10

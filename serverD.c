@@ -15,9 +15,7 @@
 #include <arpa/inet.h>
 
 #define PORT "3490" // the port client will be connecting to
-
-#define MAXDATASIZE 100 // max number of bytes we can get at once
-
+#define MAXDATASIZE 100
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -28,15 +26,32 @@ void *get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int main(int argc, char *argv[])
+int main(int argc)
 {
+	FILE *fp;
 	int sockfd, numbytes;
-	char buf[MAXDATASIZE];
+	char buf[MAXDATASIZE], *send_buf;
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 	char s[INET6_ADDRSTRLEN];
+	int file_size;
 
-	if (argc != 2) {
+	fp = fopen("serverD.txt", "r");
+	fseek(fp,0,SEEK_END);
+	file_size = ftell(fp);
+	fseek(fp,0,SEEK_SET);
+
+	send_buf = (char *)malloc(sizeof(char) * file_size);
+
+	if(fp == NULL) {
+		perror("Error while reading serverA.txt\n");
+	}
+
+	while(fgets(buf,80,fp) != NULL) {
+		strcat(send_buf, buf);
+	}
+
+	if (argc != 1) {
 	    fprintf(stderr,"usage: client hostname\n");
 	    exit(1);
 	}
@@ -45,7 +60,7 @@ int main(int argc, char *argv[])
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo("localhost", PORT, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
@@ -78,7 +93,7 @@ int main(int argc, char *argv[])
 
 	freeaddrinfo(servinfo); // all done with this structure
 
-	if (send(sockfd, "Hello, world serverD!", 21, 0) == -1)
+	if (send(sockfd, send_buf, file_size, 0) == -1)
 		perror("send");
 
 	close(sockfd);
