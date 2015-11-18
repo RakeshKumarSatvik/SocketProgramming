@@ -21,7 +21,11 @@
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once
 
-#define SERVERPORT "4950"	// the port users will be connecting to
+#define SERVERPORT_A "4950"	// the port users will be connecting to
+#define SERVERPORT_B "4951"	// the port users will be connecting to
+#define SERVERPORT_C "4952"	// the port users will be connecting to
+#define SERVERPORT_D "4953"	// the port users will be connecting to
+
 void sigchld_handler(int s)
 {
 	// waitpid() might overwrite errno, so we save and restore it:
@@ -152,47 +156,181 @@ int main(void)
 
 	/*Phase 2*/
 	{
-		int sockfd;
-		struct addrinfo hints, *servinfo, *p;
-		int rv;
-		int numbytes;
+		/*UDP client for portA*/
+		{
+			int sockfd;
+			struct addrinfo hints, *servinfo, *p;
+			int rv;
+			int numbytes;
 
-		memset(&hints, 0, sizeof hints);
-		hints.ai_family = AF_UNSPEC;
-		hints.ai_socktype = SOCK_DGRAM;
+			memset(&hints, 0, sizeof hints);
+			hints.ai_family = AF_UNSPEC;
+			hints.ai_socktype = SOCK_DGRAM;
 
-		if ((rv = getaddrinfo("localhost", SERVERPORT, &hints, &servinfo)) != 0) {
-			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-			return 1;
-		}
-
-		// loop through all the results and make a socket
-		for(p = servinfo; p != NULL; p = p->ai_next) {
-			if ((sockfd = socket(p->ai_family, p->ai_socktype,
-					p->ai_protocol)) == -1) {
-				perror("talker: socket");
-				continue;
+			if ((rv = getaddrinfo("localhost", SERVERPORT_A, &hints, &servinfo)) != 0) {
+				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+				return 1;
 			}
 
-			break;
-		}
+			// loop through all the results and make a socket
+			for(p = servinfo; p != NULL; p = p->ai_next) {
+				if ((sockfd = socket(p->ai_family, p->ai_socktype,
+						p->ai_protocol)) == -1) {
+					perror("talker: socket");
+					continue;
+				}
 
-		if (p == NULL) {
-			fprintf(stderr, "talker: failed to create socket\n");
-			return 2;
-		}
+				break;
+			}
 
-		if ((numbytes = sendto(sockfd, &topology, sizeof(topology), 0,
-				 p->ai_addr, p->ai_addrlen)) == -1) {
-			perror("talker: sendto");
-			exit(1);
-		}
+			if (p == NULL) {
+				fprintf(stderr, "talker: failed to create socket\n");
+				return 2;
+			}
 
-		freeaddrinfo(servinfo);
+			if ((numbytes = sendto(sockfd, &topology, sizeof(topology), 0,
+					 p->ai_addr, p->ai_addrlen)) == -1) {
+				perror("talker: sendto");
+				exit(1);
+			}
 
-		printf("talker: sent %d bytes to %s\n", numbytes, "localhost");
-		close(sockfd);
+			freeaddrinfo(servinfo);
+
+			printf("talker: sent %d bytes to %s\n", numbytes, "localhost");
+			close(sockfd);
+		}/*End of UDP for portA*/
+
+		/*UDP client for portB*/
+		{
+			int sockfd;
+			struct addrinfo hints, *servinfo, *p;
+			int rv;
+			int numbytes;
+
+			memset(&hints, 0, sizeof hints);
+			hints.ai_family = AF_UNSPEC;
+			hints.ai_socktype = SOCK_DGRAM;
+
+			if ((rv = getaddrinfo("localhost", SERVERPORT_B, &hints, &servinfo)) != 0) {
+				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+				return 1;
+			}
+
+			// loop through all the results and make a socket
+			for(p = servinfo; p != NULL; p = p->ai_next) {
+				if ((sockfd = socket(p->ai_family, p->ai_socktype,
+						p->ai_protocol)) == -1) {
+					perror("talker: socket");
+					continue;
+				}
+
+				break;
+			}
+
+			if (p == NULL) {
+				fprintf(stderr, "talker: failed to create socket\n");
+				return 2;
+			}
+
+			if ((numbytes = sendto(sockfd, &topology, sizeof(topology), 0,
+					 p->ai_addr, p->ai_addrlen)) == -1) {
+				perror("talker: sendto");
+				exit(1);
+			}
+
+			freeaddrinfo(servinfo);
+
+			printf("talker: sent %d bytes to %s\n", numbytes, "localhost");
+			close(sockfd);
+		}/*End of UDP for portB*/
+
+		/*UDP client for portC*/
+		{
+			int sockfd;
+			struct addrinfo hints, *servinfo, *p;
+			int rv;
+			int numbytes;
+
+			memset(&hints, 0, sizeof hints);
+			hints.ai_family = AF_UNSPEC;
+			hints.ai_socktype = SOCK_DGRAM;
+
+			if ((rv = getaddrinfo("localhost", SERVERPORT_C, &hints, &servinfo)) != 0) {
+				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+				return 1;
+			}
+
+			// loop through all the results and make a socket
+			for(p = servinfo; p != NULL; p = p->ai_next) {
+				if ((sockfd = socket(p->ai_family, p->ai_socktype,
+						p->ai_protocol)) == -1) {
+					perror("talker: socket");
+					continue;
+				}
+
+				break;
+			}
+
+			if (p == NULL) {
+				fprintf(stderr, "talker: failed to create socket\n");
+				return 2;
+			}
+
+			if ((numbytes = sendto(sockfd, &topology, sizeof(topology), 0,
+					 p->ai_addr, p->ai_addrlen)) == -1) {
+				perror("talker: sendto");
+				exit(1);
+			}
+
+			freeaddrinfo(servinfo);
+
+			printf("talker: sent %d bytes to %s\n", numbytes, "localhost");
+			close(sockfd);
+		}/*End of UDP for portC*/
+
+		/*UDP client for portD*/
+		{
+			int sockfd;
+			struct addrinfo hints, *servinfo, *p;
+			int rv;
+			int numbytes;
+
+			memset(&hints, 0, sizeof hints);
+			hints.ai_family = AF_UNSPEC;
+			hints.ai_socktype = SOCK_DGRAM;
+
+			if ((rv = getaddrinfo("localhost", SERVERPORT_D, &hints, &servinfo)) != 0) {
+				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+				return 1;
+			}
+
+			// loop through all the results and make a socket
+			for(p = servinfo; p != NULL; p = p->ai_next) {
+				if ((sockfd = socket(p->ai_family, p->ai_socktype,
+						p->ai_protocol)) == -1) {
+					perror("talker: socket");
+					continue;
+				}
+
+				break;
+			}
+
+			if (p == NULL) {
+				fprintf(stderr, "talker: failed to create socket\n");
+				return 2;
+			}
+
+			if ((numbytes = sendto(sockfd, &topology, sizeof(topology), 0,
+					 p->ai_addr, p->ai_addrlen)) == -1) {
+				perror("talker: sendto");
+				exit(1);
+			}
+
+			freeaddrinfo(servinfo);
+
+			printf("talker: sent %d bytes to %s\n", numbytes, "localhost");
+			close(sockfd);
+		}/*End of UDP for portD*/
 	}
-
 	return 0;
 }

@@ -18,7 +18,7 @@
 
 #define MAXDATASIZE 100
 
-#define MYPORT "4950"	// the port users will be connecting to
+#define MYPORT "4952"	// the port users will be connecting to
 
 #define MAXBUFLEN 100
 // get sockaddr, IPv4 or IPv6:
