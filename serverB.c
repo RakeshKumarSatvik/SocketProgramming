@@ -36,67 +36,69 @@ int main(int argc)
 	char s[INET6_ADDRSTRLEN];
 	int file_size;
 
-	fp = fopen("serverB.txt", "r");
-	fseek(fp,0,SEEK_END);
-	file_size = ftell(fp);
-	fseek(fp,0,SEEK_SET);
+	/*Phase 1 of the code*/
+	{
+		fp = fopen("serverB.txt", "r");
+		fseek(fp,0,SEEK_END);
+		file_size = ftell(fp);
+		fseek(fp,0,SEEK_SET);
 
-	send_buf = (char *)malloc(sizeof(char) * file_size);
+		send_buf = (char *)malloc(sizeof(char) * file_size);
 
-	if(fp == NULL) {
-		perror("Error while reading serverA.txt\n");
-	}
-
-	while(fgets(buf,80,fp) != NULL) {
-		strcat(send_buf, buf);
-	}
-
-	if (argc != 1) {
-	    fprintf(stderr,"usage: client hostname\n");
-	    exit(1);
-	}
-
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-
-	if ((rv = getaddrinfo("localhost", PORT, &hints, &servinfo)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-		return 1;
-	}
-
-	// loop through all the results and connect to the first we can
-	for(p = servinfo; p != NULL; p = p->ai_next) {
-		if ((sockfd = socket(p->ai_family, p->ai_socktype,
-				p->ai_protocol)) == -1) {
-			perror("client: socket");
-			continue;
+		if(fp == NULL) {
+			perror("Error while reading serverA.txt\n");
 		}
 
-		if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-			close(sockfd);
-			perror("client: connect");
-			continue;
+		while(fgets(buf,80,fp) != NULL) {
+			strcat(send_buf, buf);
 		}
 
-		break;
-	}
+		if (argc != 1) {
+			fprintf(stderr,"usage: client hostname\n");
+			exit(1);
+		}
 
-	if (p == NULL) {
-		fprintf(stderr, "client: failed to connect\n");
-		return 2;
-	}
+		memset(&hints, 0, sizeof hints);
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_socktype = SOCK_STREAM;
 
-	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
-			s, sizeof s);
-	printf("client: connecting to %s\n", s);
+		if ((rv = getaddrinfo("localhost", PORT, &hints, &servinfo)) != 0) {
+			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+			return 1;
+		}
 
-	freeaddrinfo(servinfo); // all done with this structure
+		// loop through all the results and connect to the first we can
+		for(p = servinfo; p != NULL; p = p->ai_next) {
+			if ((sockfd = socket(p->ai_family, p->ai_socktype,
+					p->ai_protocol)) == -1) {
+				perror("client: socket");
+				continue;
+			}
 
-	if (send(sockfd, send_buf, file_size, 0) == -1)
-		perror("send");
+			if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+				close(sockfd);
+				perror("client: connect");
+				continue;
+			}
 
-	close(sockfd);
+			break;
+		}
 
+		if (p == NULL) {
+			fprintf(stderr, "client: failed to connect\n");
+			return 2;
+		}
+
+		inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
+				s, sizeof s);
+		printf("client: connecting to %s\n", s);
+
+		freeaddrinfo(servinfo); // all done with this structure
+
+		if (send(sockfd, send_buf, file_size, 0) == -1)
+			perror("send");
+
+		close(sockfd);
+	}/*End of Phase1*/
 	return 0;
 }

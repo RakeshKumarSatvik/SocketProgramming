@@ -1,1 +1,1 @@
-serverB	15
+serverB 15
