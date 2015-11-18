@@ -52,7 +52,7 @@ int main(void)
 	int yes=1;
 	char s[INET6_ADDRSTRLEN];
 	int rv, count = 0;
-	int temp[4], topology[4][4];
+	int temp[4], topology[4][4], adjacency[4][4];
 	int i,j;
 	/*Phase 1*/
 	{
@@ -136,9 +136,11 @@ int main(void)
 		}
 		for(i = 0; i < 4; i++) {
 			for(j = 0; j < 4; j++) {
-				printf("%d ",topology[i][j]);
+				if(topology[i][j] > 0)
+					adjacency[i][j] = 1;
+				else
+					adjacency[i][j] = 0;
 			}
-			printf("\n");
 		}
 		close(sockfd);
 		close(new_fd);  // don't need this
