@@ -53,6 +53,7 @@ int main(void)
 	char s[INET6_ADDRSTRLEN];
 	int rv, count = 0;
 	int temp[4], topology[4][4];
+	int i,j;
 	/*Phase 1*/
 	{
 		memset(&hints, 0, sizeof hints);
@@ -127,9 +128,17 @@ int main(void)
 				perror("recv");
 				exit(1);
 			}
-//			buf[numbytes] = '\0';
 			printf("client: received [0] : %d [1] : %d [2] : %d [3] : %d\n",temp[0],temp[1],temp[2],temp[3]);
-//			printf("client: received '%s'\n",buf);
+
+			for(i = 0; i < 4; i++) {
+				topology[count][i] = temp [i];
+			}
+		}
+		for(i = 0; i < 4; i++) {
+			for(j = 0; j < 4; j++) {
+				printf("%d ",topology[i][j]);
+			}
+			printf("\n");
 		}
 		close(sockfd);
 		close(new_fd);  // don't need this

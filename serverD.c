@@ -30,29 +30,59 @@ int main(int argc)
 {
 	FILE *fp;
 	int sockfd, numbytes;
-	char buf[MAXDATASIZE], *send_buf;
+	int topology[4];
+	char buf[MAXDATASIZE];
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
+	int mapper = 0;
 	char s[INET6_ADDRSTRLEN];
-	int file_size;
-
+	char *start_ptr, *tab_ptr = buf;
+	int count = 0, return_value = 0;
+	memset(topology,0,sizeof(topology));
 	/*Phase 1 of the code*/
 	{
 		fp = fopen("serverD.txt", "r");
-		fseek(fp,0,SEEK_END);
-		file_size = ftell(fp);
-		fseek(fp,0,SEEK_SET);
-
-		send_buf = (char *)malloc(sizeof(char) * file_size);
 
 		if(fp == NULL) {
 			perror("Error while reading serverA.txt\n");
 		}
 
 		while(fgets(buf,80,fp) != NULL) {
-			strcat(send_buf, buf);
-		}
+			tab_ptr = buf;
+			do {
+				start_ptr = tab_ptr;
+				tab_ptr = strchr(start_ptr, ' ');
+				if (tab_ptr != NULL) {
+				 *tab_ptr++ = '\0';
+				}
+				count++;
+				if(count % 2 == 1) {
+					return_value = strcmp(start_ptr,"serverA");
+					if(mapper == 0) {mapper = (return_value == 0) ? 1 : 0;}
+					return_value = strcmp(start_ptr,"serverB");
+					if(mapper == 0) {mapper = (return_value == 0) ? 2 : 0;}
+					return_value = strcmp(start_ptr,"serverC");
+					if(mapper == 0) {mapper = (return_value == 0) ? 3 : 0;}
+					return_value = strcmp(start_ptr,"serverD");
+					if(mapper == 0) {mapper = (return_value == 0) ? 4 : 0;}
+				}
 
+				if(count % 2 == 0) {
+					switch(mapper) {
+					case 1:topology[0] = atoi(start_ptr);
+							break;
+					case 2:topology[1] = atoi(start_ptr);
+							break;
+					case 3:topology[2] = atoi(start_ptr);
+							break;
+					case 4:topology[3] = atoi(start_ptr);
+							break;
+					default : printf("Error in reading the file %d mapper\n",mapper);
+					}
+					mapper = 0;
+				}
+			} while(tab_ptr != NULL);
+		}
 		if (argc != 1) {
 			fprintf(stderr,"usage: client hostname\n");
 			exit(1);
@@ -92,10 +122,9 @@ int main(int argc)
 		inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
 				s, sizeof s);
 		printf("client: connecting to %s\n", s);
-
+		printf("client: received [0] : %d [1] : %d [2] : %d [3] : %d\n",topology[0],topology[1],topology[2],topology[3]);
 		freeaddrinfo(servinfo); // all done with this structure
-
-		if (send(sockfd, send_buf, file_size, 0) == -1)
+		if (send(sockfd, &topology, sizeof(topology), 0) == -1)
 			perror("send");
 
 		close(sockfd);
