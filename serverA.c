@@ -15,7 +15,12 @@
 #include <arpa/inet.h>
 
 #define PORT "3490" // the port client will be connecting to
+
 #define MAXDATASIZE 100
+
+#define MYPORT "4950"	// the port users will be connecting to
+
+#define MAXBUFLEN 100
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -28,19 +33,20 @@ void *get_in_addr(struct sockaddr *sa)
 
 int main(int argc)
 {
-	FILE *fp;
-	int sockfd, numbytes;
-	int topology[4];
-	char buf[MAXDATASIZE];
-	struct addrinfo hints, *servinfo, *p;
-	int rv;
-	int mapper = 0;
-	char s[INET6_ADDRSTRLEN];
-	char *start_ptr, *tab_ptr = buf;
-	int count = 0, return_value = 0;
-	memset(topology,0,sizeof(topology));
+	int i, j, topology_receive[4][4], adjacency[4][4];
 	/*Phase 1 of the code*/
 	{
+		FILE *fp;
+		int sockfd, numbytes;
+		int topology[4];
+		char buf[MAXDATASIZE];
+		struct addrinfo hints, *servinfo, *p;
+		int rv;
+		int mapper = 0;
+		char s[INET6_ADDRSTRLEN];
+		char *start_ptr, *tab_ptr = buf;
+		int count = 0, return_value = 0;
+		memset(topology,0,sizeof(topology));
 		fp = fopen("serverA.txt", "r");
 
 		if(fp == NULL) {
@@ -129,5 +135,80 @@ int main(int argc)
 
 		close(sockfd);
 	}/*End of Phase1*/
+
+	/*Code for Phase 2*/
+	{
+		int sockfd;
+		struct addrinfo hints, *servinfo, *p;
+		int rv;
+		int numbytes;
+		struct sockaddr_storage their_addr;
+		char buf[MAXBUFLEN];
+		socklen_t addr_len;
+		char s[INET6_ADDRSTRLEN];
+
+		memset(&hints, 0, sizeof hints);
+		hints.ai_family = AF_UNSPEC; // set to AF_INET to force IPv4
+		hints.ai_socktype = SOCK_DGRAM;
+		hints.ai_flags = AI_PASSIVE; // use my IP
+
+		if ((rv = getaddrinfo(NULL, MYPORT, &hints, &servinfo)) != 0) {
+			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+			return 1;
+		}
+
+		// loop through all the results and bind to the first we can
+		for(p = servinfo; p != NULL; p = p->ai_next) {
+			if ((sockfd = socket(p->ai_family, p->ai_socktype,
+					p->ai_protocol)) == -1) {
+				perror("listener: socket");
+				continue;
+			}
+
+			if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+				close(sockfd);
+				perror("listener: bind");
+				continue;
+			}
+
+			break;
+		}
+
+		if (p == NULL) {
+			fprintf(stderr, "listener: failed to bind socket\n");
+			return 2;
+		}
+
+		freeaddrinfo(servinfo);
+
+		printf("listener: waiting to recvfrom...\n");
+
+		addr_len = sizeof their_addr;
+		if ((numbytes = recvfrom(sockfd, (int *)topology_receive, MAXBUFLEN-1 , 0,
+			(struct sockaddr *)&their_addr, &addr_len)) == -1) {
+			perror("recvfrom");
+			exit(1);
+		}
+
+		printf("listener: got packet from %s\n",
+			inet_ntop(their_addr.ss_family,
+				get_in_addr((struct sockaddr *)&their_addr),
+				s, sizeof s));
+		printf("listener: packet is %d bytes long\n", numbytes);
+
+		for(i = 0; i < 4; i++) {
+			for(j = 0; j < 4; j++) {
+				printf("%d\t",topology_receive[i][j]);
+				if(topology_receive[i][j] > 0)
+					adjacency[i][j] = 1;
+				else
+					adjacency[i][j] = 0;
+			}
+			printf("\n");
+		}
+
+		close(sockfd);
+	} /*End of phase2*/
+
 	return 0;
 }

@@ -20,6 +20,8 @@
 #define BACKLOG 10	 // how many pending connections queue will hold
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once
+
+#define SERVERPORT "4950"	// the port users will be connecting to
 void sigchld_handler(int s)
 {
 	// waitpid() might overwrite errno, so we save and restore it:
@@ -43,19 +45,21 @@ void *get_in_addr(struct sockaddr *sa)
 
 int main(void)
 {
-	int sockfd, new_fd, numbytes;  // listen on sock_fd, new connection on new_fd
-	struct addrinfo hints, *servinfo, *p;
-	struct sockaddr_storage their_addr; // connector's address information
-	socklen_t sin_size;
-	char buf[MAXDATASIZE];
-	struct sigaction sa;
-	int yes=1;
-	char s[INET6_ADDRSTRLEN];
-	int rv, count = 0;
 	int temp[4], topology[4][4], adjacency[4][4];
-	int i,j;
+
 	/*Phase 1*/
 	{
+		int sockfd, new_fd, numbytes;  // listen on sock_fd, new connection on new_fd
+		struct addrinfo hints, *servinfo, *p;
+		struct sockaddr_storage their_addr; // connector's address information
+		socklen_t sin_size;
+		char buf[MAXDATASIZE];
+		struct sigaction sa;
+		int yes=1;
+		char s[INET6_ADDRSTRLEN];
+		int rv, count = 0;
+		int i,j;
+
 		memset(&hints, 0, sizeof hints);
 		hints.ai_family = AF_UNSPEC;
 		hints.ai_socktype = SOCK_STREAM;
@@ -148,7 +152,46 @@ int main(void)
 
 	/*Phase 2*/
 	{
+		int sockfd;
+		struct addrinfo hints, *servinfo, *p;
+		int rv;
+		int numbytes;
 
+		memset(&hints, 0, sizeof hints);
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_socktype = SOCK_DGRAM;
+
+		if ((rv = getaddrinfo("localhost", SERVERPORT, &hints, &servinfo)) != 0) {
+			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+			return 1;
+		}
+
+		// loop through all the results and make a socket
+		for(p = servinfo; p != NULL; p = p->ai_next) {
+			if ((sockfd = socket(p->ai_family, p->ai_socktype,
+					p->ai_protocol)) == -1) {
+				perror("talker: socket");
+				continue;
+			}
+
+			break;
+		}
+
+		if (p == NULL) {
+			fprintf(stderr, "talker: failed to create socket\n");
+			return 2;
+		}
+
+		if ((numbytes = sendto(sockfd, &topology, sizeof(topology), 0,
+				 p->ai_addr, p->ai_addrlen)) == -1) {
+			perror("talker: sendto");
+			exit(1);
+		}
+
+		freeaddrinfo(servinfo);
+
+		printf("talker: sent %d bytes to %s\n", numbytes, "localhost");
+		close(sockfd);
 	}
 
 	return 0;
