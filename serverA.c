@@ -14,11 +14,11 @@
 
 #include <arpa/inet.h>
 
-#define PORT "3490" // the port client will be connecting to
+#define PORT "25251" // the port client will be connecting to
 
 #define MAXDATASIZE 100
 
-#define MYPORT "4950"	// the port users will be connecting to
+#define MYPORT "21251"	// the port users will be connecting to
 
 #define MAXBUFLEN 100
 // get sockaddr, IPv4 or IPv6:
@@ -34,6 +34,10 @@ void *get_in_addr(struct sockaddr *sa)
 int main(int argc)
 {
 	int i, j, topology_receive[4][4], adjacency[4][4];
+	struct sockaddr *my_addr;
+	socklen_t addrlen;
+	int getsock_check;
+
 	/*Phase 1 of the code*/
 	{
 		FILE *fp;
@@ -47,12 +51,14 @@ int main(int argc)
 		char *start_ptr, *tab_ptr = buf;
 		int count = 0, return_value = 0;
 		memset(topology,0,sizeof(topology));
+		int flag = 0;
 		fp = fopen("serverA.txt", "r");
 
 		if(fp == NULL) {
 			perror("Error while reading serverA.txt\n");
 		}
 
+		printf("The Server A is up and running.\n");
 		while(fgets(buf,80,fp) != NULL) {
 			tab_ptr = buf;
 			do {
@@ -83,11 +89,30 @@ int main(int argc)
 							break;
 					case 4:topology[3] = atoi(start_ptr);
 							break;
-					default : printf("Error in reading the file %d mapper\n",mapper);
+					default : fprintf(stderr,"Error in reading the file %d mapper\n",mapper);
 					}
 					mapper = 0;
 				}
 			} while(tab_ptr != NULL);
+		}
+		for(i=0;i<4;i++) {
+			if(topology[i] > 0) {
+				if(flag == 0) {
+					printf("Neighbor-------Cost\n");
+					flag = 1;
+				}
+				switch(i) {
+				case 1: printf("serverA\t\t%d\n",topology[i]);
+						break;
+				case 2: printf("serverB\t\t%d\n",topology[i]);
+						break;
+				case 3: printf("serverC\t\t%d\n",topology[i]);
+						break;
+				case 4: printf("serverD\t\t%d\n",topology[i]);
+						break;
+				default : fprintf(stderr,"Error reading the file");
+				}
+			}
 		}
 		if (argc != 1) {
 			fprintf(stderr,"usage: client hostname\n");
@@ -127,12 +152,26 @@ int main(int argc)
 
 		inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
 				s, sizeof s);
-		printf("client: connecting to %s\n", s);
-		printf("client: received [0] : %d [1] : %d [2] : %d [3] : %d\n",topology[0],topology[1],topology[2],topology[3]);
+//		printf("client: connecting to %s\n", s);
+//		printf("client: received [0] : %d [1] : %d [2] : %d [3] : %d\n",topology[0],topology[1],topology[2],topology[3]);
 		freeaddrinfo(servinfo); // all done with this structure
 		if (send(sockfd, &topology, sizeof(topology), 0) == -1)
 			perror("send");
 
+		printf("The Server A finishes sending its neighbor information to the client with TCP"
+				"port number %s and IP address %s (Client's TCP port number and IP address).\n",
+				PORT,s);
+
+/*
+		getsock_check = getsockname(sockfd,&my_addr,&addrlen);
+		if (getsock_check == -­1) {
+			perror("getsockname");
+			exit(1);
+		}
+*/
+
+		printf("%s my_addr.\n",my_addr);
+		printf("For this connection with the Client, the Server A has TCP port number % and IP address%.\n");
 		close(sockfd);
 	}/*End of Phase1*/
 
@@ -181,7 +220,7 @@ int main(int argc)
 
 		freeaddrinfo(servinfo);
 
-		printf("listener: waiting to recvfrom...\n");
+		printf("serverA: waiting to recvfrom...\n");
 
 		addr_len = sizeof their_addr;
 		if ((numbytes = recvfrom(sockfd, (int *)topology_receive, MAXBUFLEN-1 , 0,
@@ -194,7 +233,7 @@ int main(int argc)
 			inet_ntop(their_addr.ss_family,
 				get_in_addr((struct sockaddr *)&their_addr),
 				s, sizeof s));
-		printf("listener: packet is %d bytes long\n", numbytes);
+//		printf("listener: packet is %d bytes long\n", numbytes);
 
 		for(i = 0; i < 4; i++) {
 			for(j = 0; j < 4; j++) {

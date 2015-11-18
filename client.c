@@ -16,16 +16,16 @@
 #include <signal.h>
 #include <limits.h>
 
-#define PORT "3490"  // the port users will be connecting to
+#define PORT "25251"  // the port users will be connecting to
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once
 
-#define SERVERPORT_A "4950"	// the port users will be connecting to
-#define SERVERPORT_B "4951"	// the port users will be connecting to
-#define SERVERPORT_C "4952"	// the port users will be connecting to
-#define SERVERPORT_D "4953"	// the port users will be connecting to
+#define SERVERPORT_A "21251"	// the port users will be connecting to
+#define SERVERPORT_B "22251"	// the port users will be connecting to
+#define SERVERPORT_C "23251"	// the port users will be connecting to
+#define SERVERPORT_D "24251"	// the port users will be connecting to
 
 void sigchld_handler(int s)
 {
@@ -123,7 +123,6 @@ void primMST(int graph[V][V])
 int main(void)
 {
 	int temp[4], topology[4][4], adjacency[4][4];
-
 	/*Phase 1*/
 	{
 		int sockfd, new_fd, numbytes;  // listen on sock_fd, new connection on new_fd
@@ -229,7 +228,9 @@ int main(void)
 
 	/*Phase 2*/
 	{
-		/*UDP client for portA*/
+		int i;
+		/*UDP client for portA,B,C,D*/
+		for(i=0;i<4;i++)
 		{
 			int sockfd;
 			struct addrinfo hints, *servinfo, *p;
@@ -240,9 +241,26 @@ int main(void)
 			hints.ai_family = AF_UNSPEC;
 			hints.ai_socktype = SOCK_DGRAM;
 
-			if ((rv = getaddrinfo("localhost", SERVERPORT_A, &hints, &servinfo)) != 0) {
-				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-				return 1;
+			if(i == 0) {
+				if ((rv = getaddrinfo("localhost", SERVERPORT_A, &hints, &servinfo)) != 0) {
+					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+					return 1;
+				}
+			} else if(i == 1) {
+				if ((rv = getaddrinfo("localhost", SERVERPORT_B, &hints, &servinfo)) != 0) {
+					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+					return 1;
+				}
+			} else if(i == 2) {
+				if ((rv = getaddrinfo("localhost", SERVERPORT_C, &hints, &servinfo)) != 0) {
+					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+					return 1;
+				}
+			} else if(i == 3) {
+				if ((rv = getaddrinfo("localhost", SERVERPORT_D, &hints, &servinfo)) != 0) {
+					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+					return 1;
+				}
 			}
 
 			// loop through all the results and make a socket
@@ -271,139 +289,7 @@ int main(void)
 
 			printf("talker: sent %d bytes to %s\n", numbytes, "localhost");
 			close(sockfd);
-		}/*End of UDP for portA*/
-
-		/*UDP client for portB*/
-		{
-			int sockfd;
-			struct addrinfo hints, *servinfo, *p;
-			int rv;
-			int numbytes;
-
-			memset(&hints, 0, sizeof hints);
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_socktype = SOCK_DGRAM;
-
-			if ((rv = getaddrinfo("localhost", SERVERPORT_B, &hints, &servinfo)) != 0) {
-				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-				return 1;
-			}
-
-			// loop through all the results and make a socket
-			for(p = servinfo; p != NULL; p = p->ai_next) {
-				if ((sockfd = socket(p->ai_family, p->ai_socktype,
-						p->ai_protocol)) == -1) {
-					perror("talker: socket");
-					continue;
-				}
-
-				break;
-			}
-
-			if (p == NULL) {
-				fprintf(stderr, "talker: failed to create socket\n");
-				return 2;
-			}
-
-			if ((numbytes = sendto(sockfd, &topology, sizeof(topology), 0,
-					 p->ai_addr, p->ai_addrlen)) == -1) {
-				perror("talker: sendto");
-				exit(1);
-			}
-
-			freeaddrinfo(servinfo);
-
-			printf("talker: sent %d bytes to %s\n", numbytes, "localhost");
-			close(sockfd);
-		}/*End of UDP for portB*/
-
-		/*UDP client for portC*/
-		{
-			int sockfd;
-			struct addrinfo hints, *servinfo, *p;
-			int rv;
-			int numbytes;
-
-			memset(&hints, 0, sizeof hints);
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_socktype = SOCK_DGRAM;
-
-			if ((rv = getaddrinfo("localhost", SERVERPORT_C, &hints, &servinfo)) != 0) {
-				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-				return 1;
-			}
-
-			// loop through all the results and make a socket
-			for(p = servinfo; p != NULL; p = p->ai_next) {
-				if ((sockfd = socket(p->ai_family, p->ai_socktype,
-						p->ai_protocol)) == -1) {
-					perror("talker: socket");
-					continue;
-				}
-
-				break;
-			}
-
-			if (p == NULL) {
-				fprintf(stderr, "talker: failed to create socket\n");
-				return 2;
-			}
-
-			if ((numbytes = sendto(sockfd, &topology, sizeof(topology), 0,
-					 p->ai_addr, p->ai_addrlen)) == -1) {
-				perror("talker: sendto");
-				exit(1);
-			}
-
-			freeaddrinfo(servinfo);
-
-			printf("talker: sent %d bytes to %s\n", numbytes, "localhost");
-			close(sockfd);
-		}/*End of UDP for portC*/
-
-		/*UDP client for portD*/
-		{
-			int sockfd;
-			struct addrinfo hints, *servinfo, *p;
-			int rv;
-			int numbytes;
-
-			memset(&hints, 0, sizeof hints);
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_socktype = SOCK_DGRAM;
-
-			if ((rv = getaddrinfo("localhost", SERVERPORT_D, &hints, &servinfo)) != 0) {
-				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-				return 1;
-			}
-
-			// loop through all the results and make a socket
-			for(p = servinfo; p != NULL; p = p->ai_next) {
-				if ((sockfd = socket(p->ai_family, p->ai_socktype,
-						p->ai_protocol)) == -1) {
-					perror("talker: socket");
-					continue;
-				}
-
-				break;
-			}
-
-			if (p == NULL) {
-				fprintf(stderr, "talker: failed to create socket\n");
-				return 2;
-			}
-
-			if ((numbytes = sendto(sockfd, &topology, sizeof(topology), 0,
-					 p->ai_addr, p->ai_addrlen)) == -1) {
-				perror("talker: sendto");
-				exit(1);
-			}
-
-			freeaddrinfo(servinfo);
-
-			printf("talker: sent %d bytes to %s\n", numbytes, "localhost");
-			close(sockfd);
-		}/*End of UDP for portD*/
+		}/*End of UDP for portA,B,C,D*/
 	}
 
 	/*Phase 3, calculate the tree*/
