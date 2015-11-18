@@ -52,7 +52,7 @@ int main(void)
 	int yes=1;
 	char s[INET6_ADDRSTRLEN];
 	int rv, count = 0;
-
+	int temp[4], topology[4][4];
 	/*Phase 1*/
 	{
 		memset(&hints, 0, sizeof hints);
@@ -123,13 +123,13 @@ int main(void)
 				s, sizeof s);
 			printf("server: got connection from %s\n", s);
 
-			if ((numbytes = recv(new_fd, buf, MAXDATASIZE-1, 0)) == -1) {
+			if ((numbytes = recv(new_fd, (int *)temp, MAXDATASIZE-1, 0)) == -1) {
 				perror("recv");
 				exit(1);
 			}
-			buf[numbytes] = '\0';
-
-			printf("client: received '%s'\n",buf);
+//			buf[numbytes] = '\0';
+			printf("client: received [0] : %d [1] : %d [2] : %d [3] : %d\n",temp[0],temp[1],temp[2],temp[3]);
+//			printf("client: received '%s'\n",buf);
 		}
 		close(sockfd);
 		close(new_fd);  // don't need this
