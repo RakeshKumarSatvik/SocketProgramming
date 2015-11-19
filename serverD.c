@@ -31,9 +31,86 @@ void *get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+void print_topology_A(int graph[4][4],int i, int j){
+	switch(j) {
+	case 0: printf("AA\t\t%d\n",graph[i][j]);
+			break;
+	case 1: printf("AB\t\t%d\n",graph[i][j]);
+			break;
+	case 2: printf("AC\t\t%d\n",graph[i][j]);
+			break;
+	case 3: printf("AD\t\t%d\n",graph[i][j]);
+			break;
+	default: fprintf(stderr,"Printing the graphA error\n");
+	}
+}
+
+void print_topology_B(int graph[4][4],int i, int j){
+	switch(j) {
+	case 0: break;
+	case 1: printf("BB\t\t%d\n",graph[i][j]);
+			break;
+	case 2: printf("BC\t\t%d\n",graph[i][j]);
+			break;
+	case 3: printf("BD\t\t%d\n",graph[i][j]);
+			break;
+	default: fprintf(stderr,"Printing the graphB error\n");
+	}
+}
+
+void print_topology_C(int graph[4][4],int i, int j){
+	switch(j) {
+	case 0:
+	case 1:break;
+	case 2: printf("CC\t\t%d\n",graph[i][j]);
+			break;
+	case 3: printf("CD\t\t%d\n",graph[i][j]);
+			break;
+	default: fprintf(stderr,"Printing the graphC error\n");
+	}
+}
+
+void print_topology_D(int graph[4][4],int i, int j){
+	switch(j) {
+	case 0:
+	case 1:
+	case 2: break;
+	case 3: printf("DD\t\t%d\n",graph[i][j]);
+			break;
+	default: fprintf(stderr,"Printing the graphD error\n");
+	}
+}
+
+void print_topology(int graph[4][4]) {
+	int i,j;
+	for(i = 0; i < 4; i++) {
+		for(j = 0; j < 4; j++) {
+			if(graph[i][j] > 0) {
+				switch(i){
+				case 0: print_topology_A(graph, i, j);
+						break;
+				case 1: print_topology_B(graph, i, j);
+						break;
+				case 2: print_topology_C(graph, i, j);
+						break;
+				case 3: print_topology_D(graph, i, j);
+						break;
+				default : fprintf(stderr,"Printing the graph error\n");
+				}
+			}
+		}
+	}
+}
+
 int main(int argc)
 {
 	int i, j, topology_receive[4][4], adjacency[4][4];
+	struct sockaddr *my_addr;
+	socklen_t addrlen;
+	int getsock_check;
+	struct sockaddr_in sa;
+	int sa_len;
+
 	/*Phase 1 of the code*/
 	{
 		FILE *fp;
@@ -41,8 +118,6 @@ int main(int argc)
 		int topology[4];
 		char buf[MAXDATASIZE];
 		struct addrinfo hints, *servinfo, *p;
-		struct sockaddr_in sa;
-		int sa_len;
 		int rv;
 		int mapper = 0;
 		char s[INET6_ADDRSTRLEN];
@@ -50,10 +125,10 @@ int main(int argc)
 		int count = 0, return_value = 0;
 		memset(topology,0,sizeof(topology));
 		int flag = 0;
-		fp = fopen("serverA.txt", "r");
+		fp = fopen("serverD.txt", "r");
 
 		if(fp == NULL) {
-			perror("Error while reading serverA.txt\n");
+			perror("Error while reading serverD.txt\n");
 		}
 
 		printf("The Server D is up and running.\n");
@@ -150,8 +225,6 @@ int main(int argc)
 
 		inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
 				s, sizeof s);
-//		printf("client: connecting to %s\n", s);
-//		printf("client: received [0] : %d [1] : %d [2] : %d [3] : %d\n",topology[0],topology[1],topology[2],topology[3]);
 		freeaddrinfo(servinfo); // all done with this structure
 		if (send(sockfd, &topology, sizeof(topology), 0) == -1)
 			perror("send");
@@ -161,15 +234,15 @@ int main(int argc)
 				PORT,s);
 
 		sa_len = sizeof(sa);
-		if (getsockname(sockfd, &sa, &sa_len) == -1) {
+		if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa, &sa_len) == -1) {
 		  perror("getsockname() failed");
 		  return 2;
 		}
 
-		printf("For this connection with the Client, the Server A has TCP port number %d and IP address %s.\n", (int) ntohs(sa.sin_port)
-																					,inet_ntoa(sa.sin_addr));
+		printf("For this connection with the Client, the Server D has TCP "
+				"port number %d and IP address %s.\n", (int) ntohs(sa.sin_port)
+													,inet_ntoa(sa.sin_addr));
 		close(sockfd);
-//		printf("For this connection with the Client, the Server D has TCP port number % and IP address%.\n");
 	}/*End of Phase1*/
 
 	/*Code for Phase 2*/
@@ -225,24 +298,15 @@ int main(int argc)
 			perror("recvfrom");
 			exit(1);
 		}
+		inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof s);
 
-		printf("listener: got packet from %s\n",
-			inet_ntop(their_addr.ss_family,
-				get_in_addr((struct sockaddr *)&their_addr),
-				s, sizeof s));
-//		printf("listener: packet is %d bytes long\n", numbytes);
+		printf("The Server D has received the network topology from the Client with UDP port number %s and IP address %s "
+				"(Client's UDP port number and IP address) as follows:\n",MYPORT,s);
 
-		for(i = 0; i < 4; i++) {
-			for(j = 0; j < 4; j++) {
-				printf("%d\t",topology_receive[i][j]);
-				if(topology_receive[i][j] > 0)
-					adjacency[i][j] = 1;
-				else
-					adjacency[i][j] = 0;
-			}
-			printf("\n");
-		}
+		print_topology(topology_receive);
 
+		printf("For this connection with Client, The Server D has UDP port number %s and IP address %s.\n",MYPORT,
+																						inet_ntoa(sa.sin_addr));
 		close(sockfd);
 	} /*End of phase2*/
 

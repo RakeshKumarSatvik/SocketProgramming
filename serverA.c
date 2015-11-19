@@ -108,7 +108,8 @@ int main(int argc)
 	struct sockaddr *my_addr;
 	socklen_t addrlen;
 	int getsock_check;
-
+	struct sockaddr_in sa;
+	int sa_len;
 	/*Phase 1 of the code*/
 	{
 		FILE *fp;
@@ -116,8 +117,6 @@ int main(int argc)
 		int topology[4];
 		char buf[MAXDATASIZE];
 		struct addrinfo hints, *servinfo, *p;
-		struct sockaddr_in sa;
-		int sa_len;
 		int rv;
 		int mapper = 0;
 		char s[INET6_ADDRSTRLEN];
@@ -225,8 +224,6 @@ int main(int argc)
 
 		inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
 				s, sizeof s);
-//		printf("client: connecting to %s\n", s);
-//		printf("client: received [0] : %d [1] : %d [2] : %d [3] : %d\n",topology[0],topology[1],topology[2],topology[3]);
 		freeaddrinfo(servinfo); // all done with this structure
 		if (send(sockfd, &topology, sizeof(topology), 0) == -1)
 			perror("send");
@@ -300,27 +297,22 @@ int main(int argc)
 			perror("recvfrom");
 			exit(1);
 		}
+
 		inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof s);
 
-		printf("The Server A has received the network topology from the Client with UDP port number %s and IP address %s "
-				"(Client's UDP port number and IP address) as follows:\n",MYPORT,s);
-//		printf("listener: got packet from %s\n",
-//			inet_ntop(their_addr.ss_family,
-//				get_in_addr((struct sockaddr *)&their_addr),
-//				s, sizeof s));
-//		printf("listener: packet is %d bytes long\n", numbytes);
-		print_topology(topology_receive);
-//		for(i = 0; i < 4; i++) {
-//			for(j = 0; j < 4; j++) {
-//				printf("%d\t",topology_receive[i][j]);
-//				if(topology_receive[i][j] > 0)
-//					adjacency[i][j] = 1;
-//				else
-//					adjacency[i][j] = 0;
-//			}
-//			printf("\n");
-//		}
+		sa_len = sizeof(sa);
+		if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa, &sa_len) == -1) {
+		  perror("getsockname() failed");
+		  return 2;
+		}
 
+		printf("The Server A has received the network topology from the Client with UDP port number %d and IP address %s "
+				"(Client's UDP port number and IP address) as follows:\n",ntohs(get_in_port((struct sockaddr *)&their_addr)),s);
+
+		print_topology(topology_receive);
+
+		printf("For this connection with Client, The Server A has UDP port number %d and IP address %s.\n",
+															(int) ntohs(sa.sin_port),inet_ntoa(sa.sin_addr));
 		close(sockfd);
 	} /*End of phase2*/
 

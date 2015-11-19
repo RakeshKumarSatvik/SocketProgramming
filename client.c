@@ -54,6 +54,8 @@ void *get_in_addr(struct sockaddr *sa)
 typedef int bool;
 enum { false, true };
 
+char name_port[4] = {'A','B','C','D'};
+
 // A utility function to find the vertex with minimum key value, from
 // the set of vertices not yet included in MST
 int minKey(int key[], bool mstSet[])
@@ -120,9 +122,109 @@ void primMST(int graph[V][V])
      // print the constructed MST
      printMST(parent, V, graph);
 }
+
+void print_neighbor_information(int graph[4], int count) {
+	int i, flag = 0;
+	for(i=0;i<4;i++) {
+		if(graph[i] > 0) {
+			if(flag == 0) {
+				printf("The Server %c has the following neighbor information:\n",name_port[count]);
+				printf("Neighbor-------Cost\n");
+				flag = 1;
+			}
+			switch(i) {
+			case 0: printf("serverA\t\t%d\n",graph[i]);
+					break;
+			case 1: printf("serverB\t\t%d\n",graph[i]);
+					break;
+			case 2: printf("serverC\t\t%d\n",graph[i]);
+					break;
+			case 3: printf("serverD\t\t%d\n",graph[i]);
+					break;
+			}
+		}
+	}
+}
+
+void print_topology_A(int graph[4][4],int i, int j){
+	switch(j) {
+	case 0: printf("AA\t\t%d\n",graph[i][j]);
+			break;
+	case 1: printf("AB\t\t%d\n",graph[i][j]);
+			break;
+	case 2: printf("AC\t\t%d\n",graph[i][j]);
+			break;
+	case 3: printf("AD\t\t%d\n",graph[i][j]);
+			break;
+	default: fprintf(stderr,"Printing the graphA error\n");
+	}
+}
+
+void print_topology_B(int graph[4][4],int i, int j){
+	switch(j) {
+	case 0: break;
+	case 1: printf("BB\t\t%d\n",graph[i][j]);
+			break;
+	case 2: printf("BC\t\t%d\n",graph[i][j]);
+			break;
+	case 3: printf("BD\t\t%d\n",graph[i][j]);
+			break;
+	default: fprintf(stderr,"Printing the graphB error\n");
+	}
+}
+
+void print_topology_C(int graph[4][4],int i, int j){
+	switch(j) {
+	case 0:
+	case 1:break;
+	case 2: printf("CC\t\t%d\n",graph[i][j]);
+			break;
+	case 3: printf("CD\t\t%d\n",graph[i][j]);
+			break;
+	default: fprintf(stderr,"Printing the graphC error\n");
+	}
+}
+
+void print_topology_D(int graph[4][4],int i, int j){
+	switch(j) {
+	case 0:
+	case 1:
+	case 2: break;
+	case 3: printf("DD\t\t%d\n",graph[i][j]);
+			break;
+	default: fprintf(stderr,"Printing the graphD error\n");
+	}
+}
+
+void print_topology(int graph[4][4]) {
+	int i,j;
+	for(i = 0; i < 4; i++) {
+		for(j = 0; j < 4; j++) {
+			if(graph[i][j] > 0) {
+				switch(i){
+				case 0: print_topology_A(graph, i, j);
+						break;
+				case 1: print_topology_B(graph, i, j);
+						break;
+				case 2: print_topology_C(graph, i, j);
+						break;
+				case 3: print_topology_D(graph, i, j);
+						break;
+				default : fprintf(stderr,"Printing the graph error\n");
+				}
+			}
+		}
+	}
+}
+
 int main(void)
 {
 	int temp[4], topology[4][4], adjacency[4][4];
+	struct hostent *he;
+	struct in_addr **addr_list;
+	struct sockaddr_in sa_port;
+	int sa_len;
+
 	/*Phase 1*/
 	{
 		int sockfd, new_fd, numbytes;  // listen on sock_fd, new connection on new_fd
@@ -135,6 +237,17 @@ int main(void)
 		char s[INET6_ADDRSTRLEN];
 		int rv, count = 0;
 		int i,j;
+		int port_count;
+
+	    if ((he = gethostbyname("localhost")) == NULL) {  // get the host info
+	        herror("gethostbyname");
+	        return 2;
+	    }
+
+	    addr_list = (struct in_addr **)he->h_addr_list;
+	    for(port_count = 0; addr_list[port_count] != NULL; port_count++) {
+	        printf("The Client has TCP port number %s and IP address %s.\n",PORT, inet_ntoa(*addr_list[port_count]));
+	    }
 
 		memset(&hints, 0, sizeof hints);
 		hints.ai_family = AF_UNSPEC;
@@ -189,8 +302,6 @@ int main(void)
 			exit(1);
 		}
 
-		printf("server: waiting for connections...\n");
-
 		for(count = 0; count < 4; count++) {  // main accept() loop
 			sin_size = sizeof their_addr;
 			new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
@@ -202,14 +313,27 @@ int main(void)
 			inet_ntop(their_addr.ss_family,
 				get_in_addr((struct sockaddr *)&their_addr),
 				s, sizeof s);
-			printf("server: got connection from %s\n", s);
 
 			if ((numbytes = recv(new_fd, (int *)temp, MAXDATASIZE-1, 0)) == -1) {
 				perror("recv");
 				exit(1);
 			}
-			printf("client: received [0] : %d [1] : %d [2] : %d [3] : %d\n",temp[0],temp[1],temp[2],temp[3]);
 
+			sa_len = sizeof(sa_port);
+			if (getsockname(new_fd, (struct sockaddr * __restrict__)&sa_port, &sa_len) == -1) {
+			  perror("getsockname() failed");
+			  return 2;
+			}
+
+			printf("The Client receives neighbor information from the Server %c with TCP port number %d and IP address "
+					"%s. (The Server %c's TCP port number and IP address)\n",name_port[count],
+													(int) ntohs(sa_port.sin_port), inet_ntoa(sa_port.sin_addr),name_port[count]);
+
+			print_neighbor_information(temp, count);
+
+			printf("For this connection with Server %c, The Client has TCP port number %s and IP address %s.\n",name_port[count],
+																	PORT,inet_ntoa(*addr_list[port_count-1]));
+			fflush(stdout);
 			for(i = 0; i < 4; i++) {
 				topology[count][i] = temp [i];
 			}
@@ -228,9 +352,10 @@ int main(void)
 
 	/*Phase 2*/
 	{
-		int i;
+		int count;
+		char s[INET6_ADDRSTRLEN];
 		/*UDP client for portA,B,C,D*/
-		for(i=0;i<4;i++)
+		for(count=0;count<4;count++)
 		{
 			int sockfd;
 			struct addrinfo hints, *servinfo, *p;
@@ -241,22 +366,22 @@ int main(void)
 			hints.ai_family = AF_UNSPEC;
 			hints.ai_socktype = SOCK_DGRAM;
 
-			if(i == 0) {
+			if(count == 0) {
 				if ((rv = getaddrinfo("localhost", SERVERPORT_A, &hints, &servinfo)) != 0) {
 					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 					return 1;
 				}
-			} else if(i == 1) {
+			} else if(count == 1) {
 				if ((rv = getaddrinfo("localhost", SERVERPORT_B, &hints, &servinfo)) != 0) {
 					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 					return 1;
 				}
-			} else if(i == 2) {
+			} else if(count == 2) {
 				if ((rv = getaddrinfo("localhost", SERVERPORT_C, &hints, &servinfo)) != 0) {
 					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 					return 1;
 				}
-			} else if(i == 3) {
+			} else if(count == 3) {
 				if ((rv = getaddrinfo("localhost", SERVERPORT_D, &hints, &servinfo)) != 0) {
 					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 					return 1;
@@ -287,7 +412,22 @@ int main(void)
 
 			freeaddrinfo(servinfo);
 
-			printf("talker: sent %d bytes to %s\n", numbytes, "localhost");
+			inet_ntop(p->ai_family,get_in_addr(p->ai_addr),s, sizeof s);
+
+			printf("\nThe Client has sent the network topology to the Server %c with UDP port number %s and IP address %s"
+					" (Server %c's UDP port number and IP address) as follows.\n",name_port[count],SERVERPORT_A,s
+													,name_port[count]);
+
+			print_topology(topology);
+
+			sa_len = sizeof(sa_port);
+			if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa_port, &sa_len) == -1) {
+			  perror("getsockname() failed");
+			  return 2;
+			}
+
+			printf("\nFor this connection with Server %c, the Client has UDP port number %d and IP address %s.\n",name_port[count],
+													(int) ntohs(sa_port.sin_port), inet_ntoa(sa_port.sin_addr));
 			close(sockfd);
 		}/*End of UDP for portA,B,C,D*/
 	}
