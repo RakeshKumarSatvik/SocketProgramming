@@ -41,6 +41,8 @@ int main(int argc)
 		int topology[4];
 		char buf[MAXDATASIZE];
 		struct addrinfo hints, *servinfo, *p;
+		struct sockaddr_in sa;
+		int sa_len;
 		int rv;
 		int mapper = 0;
 		char s[INET6_ADDRSTRLEN];
@@ -148,8 +150,6 @@ int main(int argc)
 
 		inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
 				s, sizeof s);
-//		printf("client: connecting to %s\n", s);
-//		printf("client: received [0] : %d [1] : %d [2] : %d [3] : %d\n",topology[0],topology[1],topology[2],topology[3]);
 		freeaddrinfo(servinfo); // all done with this structure
 		if (send(sockfd, &topology, sizeof(topology), 0) == -1)
 			perror("send");
@@ -157,8 +157,16 @@ int main(int argc)
 		printf("The Server B finishes sending its neighbor information to the client with TCP"
 				"port number %s and IP address %s (Client's TCP port number and IP address).\n",
 				PORT,s);
+
+		sa_len = sizeof(sa);
+		if (getsockname(sockfd, &sa, &sa_len) == -1) {
+		  perror("getsockname() failed");
+		  return 2;
+		}
+
+		printf("For this connection with the Client, the Server B has TCP port number %d and IP address %s.\n", (int) ntohs(sa.sin_port)
+																					,inet_ntoa(sa.sin_addr));
 		close(sockfd);
-//		printf("For this connection with the Client, the Server B has TCP port number % and IP address%.\n");
 	}/*End of Phase1*/
 
 	/*Code for Phase 2*/

@@ -41,6 +41,8 @@ int main(int argc)
 		int topology[4];
 		char buf[MAXDATASIZE];
 		struct addrinfo hints, *servinfo, *p;
+		struct sockaddr_in sa;
+		int sa_len;
 		int rv;
 		int mapper = 0;
 		char s[INET6_ADDRSTRLEN];
@@ -157,6 +159,15 @@ int main(int argc)
 		printf("The Server D finishes sending its neighbor information to the client with TCP"
 				"port number %s and IP address %s (Client's TCP port number and IP address).\n",
 				PORT,s);
+
+		sa_len = sizeof(sa);
+		if (getsockname(sockfd, &sa, &sa_len) == -1) {
+		  perror("getsockname() failed");
+		  return 2;
+		}
+
+		printf("For this connection with the Client, the Server A has TCP port number %d and IP address %s.\n", (int) ntohs(sa.sin_port)
+																					,inet_ntoa(sa.sin_addr));
 		close(sockfd);
 //		printf("For this connection with the Client, the Server D has TCP port number % and IP address%.\n");
 	}/*End of Phase1*/
