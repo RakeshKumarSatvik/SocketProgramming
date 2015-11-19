@@ -72,12 +72,13 @@ int minKey(int key[], bool mstSet[])
 }
 
 // A utility function to print the constructed MST stored in parent[]
-int printMST(int parent[], int n, int graph[V][V])
+int printMST(int parent[V], int n, int graph[V][V])
 {
 	int i;
-   printf("Edge   Weight\n");
-   for (i = 1; i < V; i++)
-      printf("%d - %d    %d \n", parent[i], i, graph[i][parent[i]]);
+   printf("Edge---Cost\n");
+   for (i = 1; i < V; i++) {
+	 printf("%c%c\t%d \n", name_port[parent[i]], name_port[i], graph[i][parent[i]]);
+   }
 }
 
 // Function to construct and print MST for a graph represented using adjacency
@@ -224,7 +225,7 @@ int main(void)
 	struct in_addr **addr_list;
 	struct sockaddr_in sa_port;
 	int sa_len;
-
+	char* serverport[] = {"21251","22251","23251","24251"};
 	/*Phase 1*/
 	{
 		int sockfd, new_fd, numbytes;  // listen on sock_fd, new connection on new_fd
@@ -366,26 +367,9 @@ int main(void)
 			hints.ai_family = AF_UNSPEC;
 			hints.ai_socktype = SOCK_DGRAM;
 
-			if(count == 0) {
-				if ((rv = getaddrinfo("localhost", SERVERPORT_A, &hints, &servinfo)) != 0) {
-					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-					return 1;
-				}
-			} else if(count == 1) {
-				if ((rv = getaddrinfo("localhost", SERVERPORT_B, &hints, &servinfo)) != 0) {
-					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-					return 1;
-				}
-			} else if(count == 2) {
-				if ((rv = getaddrinfo("localhost", SERVERPORT_C, &hints, &servinfo)) != 0) {
-					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-					return 1;
-				}
-			} else if(count == 3) {
-				if ((rv = getaddrinfo("localhost", SERVERPORT_D, &hints, &servinfo)) != 0) {
-					fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-					return 1;
-				}
+			if ((rv = getaddrinfo("localhost", serverport[count], &hints, &servinfo)) != 0) {
+				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+				return 1;
 			}
 
 			// loop through all the results and make a socket
@@ -415,7 +399,7 @@ int main(void)
 			inet_ntop(p->ai_family,get_in_addr(p->ai_addr),s, sizeof s);
 
 			printf("\nThe Client has sent the network topology to the Server %c with UDP port number %s and IP address %s"
-					" (Server %c's UDP port number and IP address) as follows.\n",name_port[count],SERVERPORT_A,s
+					" (Server %c's UDP port number and IP address) as follows.\n",name_port[count],serverport[count],s
 													,name_port[count]);
 
 			print_topology(topology);
@@ -427,7 +411,7 @@ int main(void)
 			}
 
 			printf("\nFor this connection with Server %c, the Client has UDP port number %d and IP address %s.\n",name_port[count],
-													(int) ntohs(sa_port.sin_port), inet_ntoa(sa_port.sin_addr));
+													(int) ntohs(sa_port.sin_port), s);
 			close(sockfd);
 		}/*End of UDP for portA,B,C,D*/
 	}

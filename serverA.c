@@ -307,12 +307,13 @@ int main(int argc)
 		}
 
 		printf("The Server A has received the network topology from the Client with UDP port number %d and IP address %s "
-				"(Client's UDP port number and IP address) as follows:\n",ntohs(get_in_port((struct sockaddr *)&their_addr)),s);
+				"(Client's UDP port number and IP address) as follows:\n",ntohs(((struct sockaddr_in*)&their_addr)->sin_port),
+																									s);
 
 		print_topology(topology_receive);
 
 		printf("For this connection with Client, The Server A has UDP port number %d and IP address %s.\n",
-															(int) ntohs(sa.sin_port),inet_ntoa(sa.sin_addr));
+															(int) ntohs(sa.sin_port),s);
 		close(sockfd);
 	} /*End of phase2*/
 

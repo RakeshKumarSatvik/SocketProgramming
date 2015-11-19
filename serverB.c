@@ -110,7 +110,6 @@ int main(int argc)
 	int getsock_check;
 	struct sockaddr_in sa;
 	int sa_len;
-
 	/*Phase 1 of the code*/
 	{
 		FILE *fp;
@@ -290,23 +289,29 @@ int main(int argc)
 
 		freeaddrinfo(servinfo);
 
-		printf("serverB: waiting to recvfrom...\n");
-
 		addr_len = sizeof their_addr;
 		if ((numbytes = recvfrom(sockfd, (int *)topology_receive, MAXBUFLEN-1 , 0,
 			(struct sockaddr *)&their_addr, &addr_len)) == -1) {
 			perror("recvfrom");
 			exit(1);
 		}
+
 		inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof s);
 
-		printf("The Server B has received the network topology from the Client with UDP port number %s and IP address %s "
-				"(Client's UDP port number and IP address) as follows:\n",MYPORT,s);
+		sa_len = sizeof(sa);
+		if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa, &sa_len) == -1) {
+		  perror("getsockname() failed");
+		  return 2;
+		}
+
+		printf("The Server B has received the network topology from the Client with UDP port number %d and IP address %s "
+				"(Client's UDP port number and IP address) as follows:\n",ntohs(((struct sockaddr_in*)&their_addr)->sin_port),
+																									s);
 
 		print_topology(topology_receive);
 
-		printf("For this connection with Client, The Server B has UDP port number %s and IP address %s.\n",MYPORT,
-																						inet_ntoa(sa.sin_addr));
+		printf("For this connection with Client, The Server B has UDP port number %d and IP address %s.\n",
+															(int) ntohs(sa.sin_port),s);
 		close(sockfd);
 	} /*End of phase2*/
 
