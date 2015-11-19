@@ -14,7 +14,7 @@
 
 #define MAXDATASIZE 100
 
-#define MYPORT "23251"	// the port users will be connecting to
+#define MYPORT "21251"	// the port users will be connecting to
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -78,7 +78,6 @@ void print_topology_D(int graph[4][4],int i, int j){
 
 void print_topology(int graph[4][4]) {
 	int i,j;
-	printf("Edge---------Cost\n");
 	for(i = 0; i < 4; i++) {
 		for(j = 0; j < 4; j++) {
 			if(graph[i][j] > 0) {
@@ -100,11 +99,14 @@ void print_topology(int graph[4][4]) {
 
 /*Have referred beej code mentioned in the guidelines for the basic
  * functionality. Code has been changed and optimized according to the requirement.*/
-int main(int argc, char*argv[])
+int main(int argc)
 {
 	int sockfd, numbytes;
 	FILE *fp;
-	int i, topology_receive[4][4];
+	int i, j, topology_receive[4][4], adjacency[4][4];
+	struct sockaddr *my_addr;
+	socklen_t addrlen;
+	int getsock_check;
 	struct sockaddr_in sa;
 	int sa_len;
 	int topology[4];
@@ -122,13 +124,13 @@ int main(int argc, char*argv[])
 	/*Phase 1 of the code*/
 	{
 		memset(topology,0,sizeof(topology));
-		fp = fopen("serverC.txt", "r");
+		fp = fopen("serverA.txt", "r");
 
 		if(fp == NULL) {
-			perror("Error while reading serverC.txt\n");
+			perror("Error while reading serverA.txt\n");
 		}
 
-		printf("\nThe Server C is up and running.\n");
+		printf("\nThe Server A is up and running.\n");
 		while(fgets(buf,80,fp) != NULL) {
 			tab_ptr = buf;
 			do {
@@ -165,7 +167,7 @@ int main(int argc, char*argv[])
 				}
 			} while(tab_ptr != NULL);
 		}
-		printf("\nThe Server C has the following neighbor information:\n");
+		printf("\nThe Server A has the following neighbor information:\n");
 		for(i=0;i<4;i++) {
 			if(topology[i] > 0) {
 				if(flag == 0) {
@@ -191,7 +193,7 @@ int main(int argc, char*argv[])
 		}
 
 		memset(&hints, 0, sizeof hints);
-		hints.ai_family = AF_INET;
+		hints.ai_family = AF_UNSPEC;
 		hints.ai_socktype = SOCK_STREAM;
 
 		if ((rv = getaddrinfo("localhost", PORT, &hints, &servinfo)) != 0) {
@@ -226,17 +228,17 @@ int main(int argc, char*argv[])
 		if (send(sockfd, &topology, sizeof(topology), 0) == -1)
 			perror("send");
 
-		printf("\nThe Server C finishes sending its neighbor information to the client with TCP"
+		printf("\nThe Server A finishes sending its neighbor information to the client with TCP"
 				" port number %s and IP address %s (Client's TCP port number and IP address).\n",
 				PORT,s);
 
 		sa_len = sizeof(sa);
-		if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa, (socklen_t * __restrict__)&sa_len) == -1) {
+		if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa, &sa_len) == -1) {
 		  perror("getsockname() failed");
 		  return 2;
 		}
 
-		printf("\nFor this connection with the Client, the Server C has TCP "
+		printf("\nFor this connection with the Client, the Server A has TCP "
 				"port number %d and IP address %s.\n", (int) ntohs(sa.sin_port)
 													,inet_ntoa(sa.sin_addr));
 		close(sockfd);
@@ -246,7 +248,7 @@ int main(int argc, char*argv[])
 	{
 
 		memset(&hints, 0, sizeof hints);
-		hints.ai_family = AF_INET; // set to AF_INET to force IPv4
+		hints.ai_family = AF_UNSPEC; // set to AF_INET to force IPv4
 		hints.ai_socktype = SOCK_DGRAM;
 		hints.ai_flags = AI_PASSIVE; // use my IP
 
@@ -259,13 +261,13 @@ int main(int argc, char*argv[])
 		for(p = servinfo; p != NULL; p = p->ai_next) {
 			if ((sockfd = socket(p->ai_family, p->ai_socktype,
 					p->ai_protocol)) == -1) {
-				perror("serverC: socket");
+				perror("serverA: socket");
 				continue;
 			}
 
 			if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
 				close(sockfd);
-				perror("serverC: bind");
+				perror("serverA: bind");
 				continue;
 			}
 
@@ -273,7 +275,7 @@ int main(int argc, char*argv[])
 		}
 
 		if (p == NULL) {
-			fprintf(stderr, "serverC: failed to bind socket\n");
+			fprintf(stderr, "serverA: failed to bind socket\n");
 			return 2;
 		}
 
@@ -289,18 +291,18 @@ int main(int argc, char*argv[])
 		inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof s);
 
 		sa_len = sizeof(sa);
-		if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa, (socklen_t * __restrict__)&sa_len) == -1) {
+		if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa, &sa_len) == -1) {
 		  perror("getsockname() failed");
 		  return 2;
 		}
 
-		printf("\nThe Server C has received the network topology from the Client with UDP port number %d and IP address %s "
+		printf("\nThe Server A has received the network topology from the Client with UDP port number %d and IP address %s "
 				"(Client's UDP port number and IP address) as follows:\n",ntohs(((struct sockaddr_in*)&their_addr)->sin_port),
 																									s);
 
 		print_topology(topology_receive);
 
-		printf("\nFor this connection with Client, The Server C has UDP port number %d and IP address %s.\n",
+		printf("\nFor this connection with Client, The Server A has UDP port number %d and IP address %s.\n",
 															(int) ntohs(sa.sin_port),s);
 		close(sockfd);
 	} /*End of phase2*/

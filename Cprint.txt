@@ -1,0 +1,21 @@
+
+The Server C is up and running.
+
+The Server C has the following neighbor information:
+
+Neighbor-------Cost
+serverA		10
+serverB		30
+
+The Server C finishes sending its neighbor information to the client with TCP port number 25251 and IP address 127.0.0.1 (Client's TCP port number and IP address).
+
+For this connection with the Client, the Server C has TCP port number 56162 and IP address 127.0.0.1.
+
+The Server C has received the network topology from the Client with UDP port number 44795 and IP address 127.0.0.1 (Client's UDP port number and IP address) as follows:
+Edge----Cost
+AB		15
+BB		30
+CC		30
+CD		15
+
+For this connection with Client, The Server C has UDP port number 23251 and IP address 127.0.0.1.

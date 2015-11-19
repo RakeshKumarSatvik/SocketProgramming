@@ -1,0 +1,34 @@
+
+The Client has TCP port number 25251 and IP address 127.0.0.1.
+
+The Client receives neighbor information from the Server A with TCP port number 56161 and IP address 127.0.0.1. (The Server A's TCP port number and IP address)
+The Server A has the following neighbor information:
+Neighbor-------Cost
+serverB		15
+
+For this connection with Server A, The Client has TCP port number 25251 and IP address 127.0.0.1.
+
+The Client receives neighbor information from the Server B with TCP port number 56162 and IP address 127.0.0.1. (The Server B's TCP port number and IP address)
+The Server B has the following neighbor information:
+Neighbor-------Cost
+serverA		10
+serverB		30
+
+For this connection with Server B, The Client has TCP port number 25251 and IP address 127.0.0.1.
+
+The Client receives neighbor information from the Server C with TCP port number 56164 and IP address 127.0.0.1. (The Server C's TCP port number and IP address)
+The Server C has the following neighbor information:
+Neighbor-------Cost
+serverA		20
+serverC		30
+serverD		15
+
+For this connection with Server C, The Client has TCP port number 25251 and IP address 127.0.0.1.
+
+The Client receives neighbor information from the Server D with TCP port number 56165 and IP address 127.0.0.1. (The Server D's TCP port number and IP address)
+The Server D has the following neighbor information:
+Neighbor-------Cost
+serverB		20
+serverC		10
+
+For this connection with Server D, The Client has TCP port number 25251 and IP address 127.0.0.1.

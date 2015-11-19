@@ -78,7 +78,7 @@ void print_topology_D(int graph[4][4],int i, int j){
 
 void print_topology(int graph[4][4]) {
 	int i,j;
-	printf("Edge----Cost\n");
+	printf("Edge---------Cost\n");
 	for(i = 0; i < 4; i++) {
 		for(j = 0; j < 4; j++) {
 			if(graph[i][j] > 0) {

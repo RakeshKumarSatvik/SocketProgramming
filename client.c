@@ -46,6 +46,9 @@ enum { false, true };
 
 char name_port[V] = {'A','B','C','D'};
 
+/*For this particular part of the code for minimum spanning tree,
+ * I have referred GeeksforGeeks
+ * http://www.geeksforgeeks.org/greedy-algorithms-set-5-prims-minimum-spanning-tree-mst-2/*/
 int minKey(int key[], bool mstSet[])
 {
 	int v;
@@ -182,6 +185,7 @@ void print_topology_D(int graph[V][V],int i, int j){
 
 void print_topology(int graph[V][V]) {
 	int i,j;
+	printf("Edge---------Cost\n");
 	for(i = 0; i < V; i++) {
 		for(j = 0; j < V; j++) {
 			if(graph[i][j] > 0) {

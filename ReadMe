@@ -1,0 +1,36 @@
+a. Rakesh Kumar T Satvik
+
+b. Student ID: 8772-6992-51
+
+c. In this particular assignment we are trying to set up a network topology and compute it's minimum spanning tree.
+The servers will initally send their neighboring information to the client. The client once receiving the information from all the 
+servers, computes the network topology. It is basically a connected graph and client unicast broadcasts the information to each of 
+the server and compute the Minimum spanning tree.
+
+In the initial phase where the servers are sending their neighboring information, it is TCP communication. Once the client has all the 
+required information, it uses UDP communication to transmit the topology across to all the Servers.
+
+The servers will communicate with the client using TCP sockets. The client will communicate with the servers using UDP sockets.
+
+d. client.c
+Once the client boots up, it behaves like a TCP server and waits for connection. Once one of the servers sends the neighbor information
+it reads them into an array. After receiving the information from all the servers, it calculates the network topology and transmits it to
+all the servers using UDP socket. All the UDP ports under client is dynamic. TCP port under client is static. Once it has the topology computed,
+it computes the minimum spanning tree and prints the same on the screen along with the cost.
+
+serverA.c/serverB.c/serverC.c/serverD.c
+Once the server boots up, it reads the corresponding file and gets updated on the neighboring information. It computes an array over the 
+information gathered. Then it creates a TCP socket to transfer the neighboring information to the client. After it sends the information it
+creates a UDP socket and keeps on waiting until it gets a message. Once the client sends the network topology to the server, it prints the
+topology index accordingly.
+
+e. TA should run 'make' from the folder where you unzip all my files. [client.c,serverA.c,serverB.c,serverC.c,serverD.c,Makefile] Once 
+you call the make command, it will generate the corresponding executable [serverA.out,serverB.out,serverC.out,serverD.out]. You need 
+to run ./client.out and followed by the servers in order. The main assumption while writing this code is that 'client.out' will be ran first
+and then followed by the appropriate servers. The filenames that are expected from the servers:
+serverA.c -> serverA.txt
+serverB.c -> serverB.txt
+serverC.c -> serverC.txt
+serverD.c -> serverD.txt
+
+f. Servers 
