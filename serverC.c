@@ -130,7 +130,7 @@ int main(int argc)
 			perror("Error while reading serverC.txt\n");
 		}
 
-		printf("The Server C is up and running.\n");
+		printf("\nThe Server C is up and running.\n");
 		while(fgets(buf,80,fp) != NULL) {
 			tab_ptr = buf;
 			do {
@@ -167,20 +167,21 @@ int main(int argc)
 				}
 			} while(tab_ptr != NULL);
 		}
+		printf("\nThe Server C has the following neighbor information:\n");
 		for(i=0;i<4;i++) {
 			if(topology[i] > 0) {
 				if(flag == 0) {
-					printf("Neighbor-------Cost\n");
+					printf("\nNeighbor-------Cost\n");
 					flag = 1;
 				}
 				switch(i) {
-				case 1: printf("serverA\t\t%d\n",topology[i]);
+				case 0: printf("serverA\t\t%d\n",topology[i]);
 						break;
-				case 2: printf("serverB\t\t%d\n",topology[i]);
+				case 1: printf("serverB\t\t%d\n",topology[i]);
 						break;
-				case 3: printf("serverC\t\t%d\n",topology[i]);
+				case 2: printf("serverC\t\t%d\n",topology[i]);
 						break;
-				case 4: printf("serverD\t\t%d\n",topology[i]);
+				case 3: printf("serverD\t\t%d\n",topology[i]);
 						break;
 				default : fprintf(stderr,"Error reading the file");
 				}
@@ -228,7 +229,7 @@ int main(int argc)
 		if (send(sockfd, &topology, sizeof(topology), 0) == -1)
 			perror("send");
 
-		printf("The Server C finishes sending its neighbor information to the client with TCP"
+		printf("\nThe Server C finishes sending its neighbor information to the client with TCP"
 				"port number %s and IP address %s (Client's TCP port number and IP address).\n",
 				PORT,s);
 
@@ -238,8 +239,8 @@ int main(int argc)
 		  return 2;
 		}
 
-		printf("For this connection with the Client, the Server C has TCP "
-				"port number %d and IP address %s.\n", (int) ntohs(sa.sin_port)
+		printf("\nFor this connection with the Client, the Server C has TCP "
+				" port number %d and IP address %s.\n", (int) ntohs(sa.sin_port)
 													,inet_ntoa(sa.sin_addr));
 		close(sockfd);
 	}/*End of Phase1*/

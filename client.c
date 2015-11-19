@@ -48,13 +48,12 @@ void *get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-// Number of vertices in the graph
 #define V 4
 
 typedef int bool;
 enum { false, true };
 
-char name_port[4] = {'A','B','C','D'};
+char name_port[V] = {'A','B','C','D'};
 
 // A utility function to find the vertex with minimum key value, from
 // the set of vertices not yet included in MST
@@ -71,8 +70,7 @@ int minKey(int key[], bool mstSet[])
    return min_index;
 }
 
-// A utility function to print the constructed MST stored in parent[]
-int printMST(int parent[V], int n, int graph[V][V])
+int print_minimum_spanning_tree(int parent[V], int n, int graph[V][V])
 {
 	int i;
    printf("Edge---Cost\n");
@@ -81,52 +79,40 @@ int printMST(int parent[V], int n, int graph[V][V])
    }
 }
 
-// Function to construct and print MST for a graph represented using adjacency
-// matrix representation
-void primMST(int graph[V][V])
+/*For this particular part of the code for minimum spanning tree,
+ * I have referred GeeksforGeeks
+ * http://www.geeksforgeeks.org/greedy-algorithms-set-5-prims-minimum-spanning-tree-mst-2/*/
+void calculate_minimum_spanning_tree(int graph[V][V])
 {
-     int parent[V]; // Array to store constructed MST
-     int key[V];   // Key values used to pick minimum weight edge in cut
-     bool mstSet[V];  // To represent set of vertices not yet included in MST
+     int parent[V];
+     int key[V];
+     bool mstSet[V];
      int i, count;
-     // Initialize all keys as INFINITE
      for (i = 0; i < V; i++)
         key[i] = INT_MAX, mstSet[i] = false;
 
-     // Always include first 1st vertex in MST.
-     key[0] = 0;     // Make key 0 so that this vertex is picked as first vertex
-     parent[0] = -1; // First node is always root of MST
+     key[0] = 0;
+     parent[0] = -1;
 
-     // The MST will have V vertices
      for (count = 0; count < V-1; count++)
      {
     	 int v;
-        // Pick thd minimum key vertex from the set of vertices
-        // not yet included in MST
         int u = minKey(key, mstSet);
 
-        // Add the picked vertex to the MST Set
         mstSet[u] = true;
 
-        // Update key value and parent index of the adjacent vertices of
-        // the picked vertex. Consider only those vertices which are not yet
-        // included in MST
         for (v = 0; v < V; v++)
 
-           // graph[u][v] is non zero only for adjacent vertices of m
-           // mstSet[v] is false for vertices not yet included in MST
-           // Update the key only if graph[u][v] is smaller than key[v]
           if (graph[u][v] && mstSet[v] == false && graph[u][v] <  key[v])
              parent[v]  = u, key[v] = graph[u][v];
      }
 
-     // print the constructed MST
-     printMST(parent, V, graph);
+     print_minimum_spanning_tree(parent, V, graph);
 }
 
-void print_neighbor_information(int graph[4], int count) {
+void print_neighbor_information(int graph[V], int count) {
 	int i, flag = 0;
-	for(i=0;i<4;i++) {
+	for(i=0;i<V;i++) {
 		if(graph[i] > 0) {
 			if(flag == 0) {
 				printf("The Server %c has the following neighbor information:\n",name_port[count]);
@@ -147,7 +133,7 @@ void print_neighbor_information(int graph[4], int count) {
 	}
 }
 
-void print_topology_A(int graph[4][4],int i, int j){
+void print_topology_A(int graph[V][V],int i, int j){
 	switch(j) {
 	case 0: printf("AA\t\t%d\n",graph[i][j]);
 			break;
@@ -161,7 +147,7 @@ void print_topology_A(int graph[4][4],int i, int j){
 	}
 }
 
-void print_topology_B(int graph[4][4],int i, int j){
+void print_topology_B(int graph[V][V],int i, int j){
 	switch(j) {
 	case 0: break;
 	case 1: printf("BB\t\t%d\n",graph[i][j]);
@@ -174,7 +160,7 @@ void print_topology_B(int graph[4][4],int i, int j){
 	}
 }
 
-void print_topology_C(int graph[4][4],int i, int j){
+void print_topology_C(int graph[V][V],int i, int j){
 	switch(j) {
 	case 0:
 	case 1:break;
@@ -186,7 +172,7 @@ void print_topology_C(int graph[4][4],int i, int j){
 	}
 }
 
-void print_topology_D(int graph[4][4],int i, int j){
+void print_topology_D(int graph[V][V],int i, int j){
 	switch(j) {
 	case 0:
 	case 1:
@@ -197,10 +183,10 @@ void print_topology_D(int graph[4][4],int i, int j){
 	}
 }
 
-void print_topology(int graph[4][4]) {
+void print_topology(int graph[V][V]) {
 	int i,j;
-	for(i = 0; i < 4; i++) {
-		for(j = 0; j < 4; j++) {
+	for(i = 0; i < V; i++) {
+		for(j = 0; j < V; j++) {
 			if(graph[i][j] > 0) {
 				switch(i){
 				case 0: print_topology_A(graph, i, j);
@@ -220,7 +206,7 @@ void print_topology(int graph[4][4]) {
 
 int main(void)
 {
-	int temp[4], topology[4][4], adjacency[4][4];
+	int temp[V], topology[V][V], adjacency[V][V];
 	struct hostent *he;
 	struct in_addr **addr_list;
 	struct sockaddr_in sa_port;
@@ -247,7 +233,7 @@ int main(void)
 
 	    addr_list = (struct in_addr **)he->h_addr_list;
 	    for(port_count = 0; addr_list[port_count] != NULL; port_count++) {
-	        printf("The Client has TCP port number %s and IP address %s.\n",PORT, inet_ntoa(*addr_list[port_count]));
+	        printf("\nThe Client has TCP port number %s and IP address %s.\n",PORT, inet_ntoa(*addr_list[port_count]));
 	    }
 
 		memset(&hints, 0, sizeof hints);
@@ -303,7 +289,7 @@ int main(void)
 			exit(1);
 		}
 
-		for(count = 0; count < 4; count++) {  // main accept() loop
+		for(count = 0; count < V; count++) {  // main accept() loop
 			sin_size = sizeof their_addr;
 			new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
 			if (new_fd == -1) {
@@ -326,21 +312,21 @@ int main(void)
 			  return 2;
 			}
 
-			printf("The Client receives neighbor information from the Server %c with TCP port number %d and IP address "
+			printf("\nThe Client receives neighbor information from the Server %c with TCP port number %d and IP address "
 					"%s. (The Server %c's TCP port number and IP address)\n",name_port[count],
-													(int) ntohs(sa_port.sin_port), inet_ntoa(sa_port.sin_addr),name_port[count]);
+					ntohs(((struct sockaddr_in*)&their_addr)->sin_port), s,name_port[count]);
 
 			print_neighbor_information(temp, count);
 
-			printf("For this connection with Server %c, The Client has TCP port number %s and IP address %s.\n",name_port[count],
+			printf("\nFor this connection with Server %c, The Client has TCP port number %s and IP address %s.\n",name_port[count],
 																	PORT,inet_ntoa(*addr_list[port_count-1]));
 			fflush(stdout);
-			for(i = 0; i < 4; i++) {
+			for(i = 0; i < V; i++) {
 				topology[count][i] = temp [i];
 			}
 		}
-		for(i = 0; i < 4; i++) {
-			for(j = 0; j < 4; j++) {
+		for(i = 0; i < V; i++) {
+			for(j = 0; j < V; j++) {
 				if(topology[i][j] > 0)
 					adjacency[i][j] = 1;
 				else
@@ -356,7 +342,7 @@ int main(void)
 		int count;
 		char s[INET6_ADDRSTRLEN];
 		/*UDP client for portA,B,C,D*/
-		for(count=0;count<4;count++)
+		for(count=0;count<V;count++)
 		{
 			int sockfd;
 			struct addrinfo hints, *servinfo, *p;
@@ -418,7 +404,7 @@ int main(void)
 
 	/*Phase 3, calculate the tree*/
 	{
-		primMST(topology);
+		calculate_minimum_spanning_tree(topology);
 	}
 	return 0;
 }

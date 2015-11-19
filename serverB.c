@@ -130,7 +130,7 @@ int main(int argc)
 			perror("Error while reading serverB.txt\n");
 		}
 
-		printf("The Server B is up and running.\n");
+		printf("\nThe Server B is up and running.\n");
 		while(fgets(buf,80,fp) != NULL) {
 			tab_ptr = buf;
 			do {
@@ -167,20 +167,21 @@ int main(int argc)
 				}
 			} while(tab_ptr != NULL);
 		}
+		printf("\nThe Server B has the following neighbor information:\n");
 		for(i=0;i<4;i++) {
 			if(topology[i] > 0) {
 				if(flag == 0) {
-					printf("Neighbor-------Cost\n");
+					printf("\nNeighbor-------Cost\n");
 					flag = 1;
 				}
 				switch(i) {
-				case 1: printf("serverA\t\t%d\n",topology[i]);
+				case 0: printf("serverA\t\t%d\n",topology[i]);
 						break;
-				case 2: printf("serverB\t\t%d\n",topology[i]);
+				case 1: printf("serverB\t\t%d\n",topology[i]);
 						break;
-				case 3: printf("serverC\t\t%d\n",topology[i]);
+				case 2: printf("serverC\t\t%d\n",topology[i]);
 						break;
-				case 4: printf("serverD\t\t%d\n",topology[i]);
+				case 3: printf("serverD\t\t%d\n",topology[i]);
 						break;
 				default : fprintf(stderr,"Error reading the file");
 				}
@@ -228,7 +229,7 @@ int main(int argc)
 		if (send(sockfd, &topology, sizeof(topology), 0) == -1)
 			perror("send");
 
-		printf("The Server B finishes sending its neighbor information to the client with TCP"
+		printf("\nThe Server B finishes sending its neighbor information to the client with TCP"
 				"port number %s and IP address %s (Client's TCP port number and IP address).\n",
 				PORT,s);
 
@@ -238,8 +239,8 @@ int main(int argc)
 		  return 2;
 		}
 
-		printf("For this connection with the Client, the Server B has TCP "
-				"port number %d and IP address %s.\n", (int) ntohs(sa.sin_port)
+		printf("\nFor this connection with the Client, the Server B has TCP "
+				" port number %d and IP address %s.\n", (int) ntohs(sa.sin_port)
 													,inet_ntoa(sa.sin_addr));
 		close(sockfd);
 	}/*End of Phase1*/
@@ -304,13 +305,13 @@ int main(int argc)
 		  return 2;
 		}
 
-		printf("The Server B has received the network topology from the Client with UDP port number %d and IP address %s "
+		printf("\nThe Server B has received the network topology from the Client with UDP port number %d and IP address %s "
 				"(Client's UDP port number and IP address) as follows:\n",ntohs(((struct sockaddr_in*)&their_addr)->sin_port),
 																									s);
 
 		print_topology(topology_receive);
 
-		printf("For this connection with Client, The Server B has UDP port number %d and IP address %s.\n",
+		printf("\nFor this connection with Client, The Server B has UDP port number %d and IP address %s.\n",
 															(int) ntohs(sa.sin_port),s);
 		close(sockfd);
 	} /*End of phase2*/
