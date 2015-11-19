@@ -1,7 +1,3 @@
-/*
-** server.c -- a stream socket server demo
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -21,11 +17,6 @@
 #define BACKLOG 10	 // how many pending connections queue will hold
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once
-
-#define SERVERPORT_A "21251"	// the port users will be connecting to
-#define SERVERPORT_B "22251"	// the port users will be connecting to
-#define SERVERPORT_C "23251"	// the port users will be connecting to
-#define SERVERPORT_D "24251"	// the port users will be connecting to
 
 void sigchld_handler(int s)
 {
@@ -55,8 +46,6 @@ enum { false, true };
 
 char name_port[V] = {'A','B','C','D'};
 
-// A utility function to find the vertex with minimum key value, from
-// the set of vertices not yet included in MST
 int minKey(int key[], bool mstSet[])
 {
 	int v;
@@ -70,9 +59,17 @@ int minKey(int key[], bool mstSet[])
    return min_index;
 }
 
-int print_minimum_spanning_tree(int parent[V], int n, int graph[V][V])
+void print_minimum_spanning_tree(int parent[V], int n, int graph[V][V])
 {
 	int i;
+	int cost = 0;
+
+	for (i = 1; i < V; i++) {
+	 cost += graph[i][parent[i]];
+	}
+
+	printf("\n\nThe Client has calculated a tree. The tree cost is %d\n",cost);
+
    printf("Edge---Cost\n");
    for (i = 1; i < V; i++) {
 	 printf("%c%c\t%d \n", name_port[parent[i]], name_port[i], graph[i][parent[i]]);
@@ -204,28 +201,29 @@ void print_topology(int graph[V][V]) {
 	}
 }
 
+/*Have referred beej code mentioned in the guidelines for the basic
+ * functionality. Code has been changed and optimized according to the requirement.*/
 int main(void)
 {
-	int temp[V], topology[V][V], adjacency[V][V];
+	int temp[V], topology[V][V]/*, adjacency[V][V]*/;
 	struct hostent *he;
 	struct in_addr **addr_list;
 	struct sockaddr_in sa_port;
 	int sa_len;
 	char* serverport[] = {"21251","22251","23251","24251"};
+	int sockfd, new_fd, numbytes;  // listen on sock_fd, new connection on new_fd
+	struct addrinfo hints, *servinfo, *p;
+	struct sockaddr_storage their_addr; // connector's address information
+	socklen_t sin_size;
+	struct sigaction sa;
+	int yes=1;
+	char s[INET6_ADDRSTRLEN];
+	int rv, count = 0;
+	int i;
+	int port_count;
+
 	/*Phase 1*/
 	{
-		int sockfd, new_fd, numbytes;  // listen on sock_fd, new connection on new_fd
-		struct addrinfo hints, *servinfo, *p;
-		struct sockaddr_storage their_addr; // connector's address information
-		socklen_t sin_size;
-		char buf[MAXDATASIZE];
-		struct sigaction sa;
-		int yes=1;
-		char s[INET6_ADDRSTRLEN];
-		int rv, count = 0;
-		int i,j;
-		int port_count;
-
 	    if ((he = gethostbyname("localhost")) == NULL) {  // get the host info
 	        herror("gethostbyname");
 	        return 2;
@@ -237,7 +235,7 @@ int main(void)
 	    }
 
 		memset(&hints, 0, sizeof hints);
-		hints.ai_family = AF_UNSPEC;
+		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_PASSIVE; // use my IP
 
@@ -307,7 +305,7 @@ int main(void)
 			}
 
 			sa_len = sizeof(sa_port);
-			if (getsockname(new_fd, (struct sockaddr * __restrict__)&sa_port, &sa_len) == -1) {
+			if (getsockname(new_fd, (struct sockaddr * __restrict__)&sa_port, (socklen_t * __restrict__)&sa_len) == -1) {
 			  perror("getsockname() failed");
 			  return 2;
 			}
@@ -325,6 +323,7 @@ int main(void)
 				topology[count][i] = temp [i];
 			}
 		}
+/*
 		for(i = 0; i < V; i++) {
 			for(j = 0; j < V; j++) {
 				if(topology[i][j] > 0)
@@ -333,14 +332,13 @@ int main(void)
 					adjacency[i][j] = 0;
 			}
 		}
+*/
 		close(sockfd);
 		close(new_fd);  // don't need this
 	}/*End of Phase1*/
 
 	/*Phase 2*/
 	{
-		int count;
-		char s[INET6_ADDRSTRLEN];
 		/*UDP client for portA,B,C,D*/
 		for(count=0;count<V;count++)
 		{
@@ -350,7 +348,7 @@ int main(void)
 			int numbytes;
 
 			memset(&hints, 0, sizeof hints);
-			hints.ai_family = AF_UNSPEC;
+			hints.ai_family = AF_INET;
 			hints.ai_socktype = SOCK_DGRAM;
 
 			if ((rv = getaddrinfo("localhost", serverport[count], &hints, &servinfo)) != 0) {
@@ -362,7 +360,7 @@ int main(void)
 			for(p = servinfo; p != NULL; p = p->ai_next) {
 				if ((sockfd = socket(p->ai_family, p->ai_socktype,
 						p->ai_protocol)) == -1) {
-					perror("talker: socket");
+					perror("client: socket");
 					continue;
 				}
 
@@ -370,13 +368,13 @@ int main(void)
 			}
 
 			if (p == NULL) {
-				fprintf(stderr, "talker: failed to create socket\n");
+				fprintf(stderr, "client: failed to create socket\n");
 				return 2;
 			}
 
 			if ((numbytes = sendto(sockfd, &topology, sizeof(topology), 0,
 					 p->ai_addr, p->ai_addrlen)) == -1) {
-				perror("talker: sendto");
+				perror("client: sendto");
 				exit(1);
 			}
 
@@ -391,7 +389,7 @@ int main(void)
 			print_topology(topology);
 
 			sa_len = sizeof(sa_port);
-			if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa_port, &sa_len) == -1) {
+			if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa_port, (socklen_t * __restrict__)&sa_len) == -1) {
 			  perror("getsockname() failed");
 			  return 2;
 			}

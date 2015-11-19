@@ -1,7 +1,3 @@
-/*
-** client.c -- a stream socket client demo
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -20,7 +16,6 @@
 
 #define MYPORT "23251"	// the port users will be connecting to
 
-#define MAXBUFLEN 100
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -83,6 +78,7 @@ void print_topology_D(int graph[4][4],int i, int j){
 
 void print_topology(int graph[4][4]) {
 	int i,j;
+	printf("Edge----Cost\n");
 	for(i = 0; i < 4; i++) {
 		for(j = 0; j < 4; j++) {
 			if(graph[i][j] > 0) {
@@ -102,28 +98,30 @@ void print_topology(int graph[4][4]) {
 	}
 }
 
-int main(int argc)
+/*Have referred beej code mentioned in the guidelines for the basic
+ * functionality. Code has been changed and optimized according to the requirement.*/
+int main(int argc, char*argv[])
 {
-	int i, j, topology_receive[4][4], adjacency[4][4];
-	struct sockaddr *my_addr;
-	socklen_t addrlen;
-	int getsock_check;
+	int sockfd, numbytes;
+	FILE *fp;
+	int i, topology_receive[4][4];
 	struct sockaddr_in sa;
 	int sa_len;
+	int topology[4];
+	struct addrinfo hints, *servinfo, *p;
+	int rv;
+	char buf[MAXDATASIZE];
+	int mapper = 0;
+	char s[INET6_ADDRSTRLEN];
+	char *start_ptr, *tab_ptr;
+	int count = 0, return_value = 0;
+	int flag = 0;
+	struct sockaddr_storage their_addr;
+	socklen_t addr_len;
+
 	/*Phase 1 of the code*/
 	{
-		FILE *fp;
-		int sockfd, numbytes;
-		int topology[4];
-		char buf[MAXDATASIZE];
-		struct addrinfo hints, *servinfo, *p;
-		int rv;
-		int mapper = 0;
-		char s[INET6_ADDRSTRLEN];
-		char *start_ptr, *tab_ptr = buf;
-		int count = 0, return_value = 0;
 		memset(topology,0,sizeof(topology));
-		int flag = 0;
 		fp = fopen("serverC.txt", "r");
 
 		if(fp == NULL) {
@@ -193,7 +191,7 @@ int main(int argc)
 		}
 
 		memset(&hints, 0, sizeof hints);
-		hints.ai_family = AF_UNSPEC;
+		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 
 		if ((rv = getaddrinfo("localhost", PORT, &hints, &servinfo)) != 0) {
@@ -222,7 +220,6 @@ int main(int argc)
 			fprintf(stderr, "client: failed to connect\n");
 			return 2;
 		}
-
 		inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
 				s, sizeof s);
 		freeaddrinfo(servinfo); // all done with this structure
@@ -230,34 +227,26 @@ int main(int argc)
 			perror("send");
 
 		printf("\nThe Server C finishes sending its neighbor information to the client with TCP"
-				"port number %s and IP address %s (Client's TCP port number and IP address).\n",
+				" port number %s and IP address %s (Client's TCP port number and IP address).\n",
 				PORT,s);
 
 		sa_len = sizeof(sa);
-		if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa, &sa_len) == -1) {
+		if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa, (socklen_t * __restrict__)&sa_len) == -1) {
 		  perror("getsockname() failed");
 		  return 2;
 		}
 
 		printf("\nFor this connection with the Client, the Server C has TCP "
-				" port number %d and IP address %s.\n", (int) ntohs(sa.sin_port)
+				"port number %d and IP address %s.\n", (int) ntohs(sa.sin_port)
 													,inet_ntoa(sa.sin_addr));
 		close(sockfd);
 	}/*End of Phase1*/
 
 	/*Code for Phase 2*/
 	{
-		int sockfd;
-		struct addrinfo hints, *servinfo, *p;
-		int rv;
-		int numbytes;
-		struct sockaddr_storage their_addr;
-		char buf[MAXBUFLEN];
-		socklen_t addr_len;
-		char s[INET6_ADDRSTRLEN];
 
 		memset(&hints, 0, sizeof hints);
-		hints.ai_family = AF_UNSPEC; // set to AF_INET to force IPv4
+		hints.ai_family = AF_INET; // set to AF_INET to force IPv4
 		hints.ai_socktype = SOCK_DGRAM;
 		hints.ai_flags = AI_PASSIVE; // use my IP
 
@@ -270,13 +259,13 @@ int main(int argc)
 		for(p = servinfo; p != NULL; p = p->ai_next) {
 			if ((sockfd = socket(p->ai_family, p->ai_socktype,
 					p->ai_protocol)) == -1) {
-				perror("listener: socket");
+				perror("serverC: socket");
 				continue;
 			}
 
 			if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
 				close(sockfd);
-				perror("listener: bind");
+				perror("serverC: bind");
 				continue;
 			}
 
@@ -284,14 +273,14 @@ int main(int argc)
 		}
 
 		if (p == NULL) {
-			fprintf(stderr, "listener: failed to bind socket\n");
+			fprintf(stderr, "serverC: failed to bind socket\n");
 			return 2;
 		}
 
 		freeaddrinfo(servinfo);
 
 		addr_len = sizeof their_addr;
-		if ((numbytes = recvfrom(sockfd, (int *)topology_receive, MAXBUFLEN-1 , 0,
+		if ((numbytes = recvfrom(sockfd, (int *)topology_receive, MAXDATASIZE-1 , 0,
 			(struct sockaddr *)&their_addr, &addr_len)) == -1) {
 			perror("recvfrom");
 			exit(1);
@@ -300,18 +289,18 @@ int main(int argc)
 		inet_ntop(their_addr.ss_family,get_in_addr((struct sockaddr *)&their_addr),s, sizeof s);
 
 		sa_len = sizeof(sa);
-		if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa, &sa_len) == -1) {
+		if (getsockname(sockfd, (struct sockaddr * __restrict__)&sa, (socklen_t * __restrict__)&sa_len) == -1) {
 		  perror("getsockname() failed");
 		  return 2;
 		}
 
-		printf("The Server C has received the network topology from the Client with UDP port number %d and IP address %s "
+		printf("\nThe Server C has received the network topology from the Client with UDP port number %d and IP address %s "
 				"(Client's UDP port number and IP address) as follows:\n",ntohs(((struct sockaddr_in*)&their_addr)->sin_port),
 																									s);
 
 		print_topology(topology_receive);
 
-		printf("For this connection with Client, The Server C has UDP port number %d and IP address %s.\n",
+		printf("\nFor this connection with Client, The Server C has UDP port number %d and IP address %s.\n",
 															(int) ntohs(sa.sin_port),s);
 		close(sockfd);
 	} /*End of phase2*/
