@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <limits.h>
 
+/*This is the static TCP port number of the client*/
 #define PORT "25251"  // the port users will be connecting to
 
 #define BACKLOG 10	 // how many pending connections queue will hold
@@ -62,6 +63,7 @@ int minKey(int key[], bool mstSet[])
    return min_index;
 }
 
+/*This particular function is used to print the minimum spanning tree*/
 void print_minimum_spanning_tree(int parent[V], int n, int graph[V][V])
 {
 	int i;
@@ -110,6 +112,8 @@ void calculate_minimum_spanning_tree(int graph[V][V])
      print_minimum_spanning_tree(parent, V, graph);
 }
 
+/*This function helps to determine the neighboring information from the matrix received from
+ * each of the servers.*/
 void print_neighbor_information(int graph[V], int count) {
 	int i, flag = 0;
 	for(i=0;i<V;i++) {
@@ -133,6 +137,7 @@ void print_neighbor_information(int graph[V], int count) {
 	}
 }
 
+/*This particular function is used to print the adjacency matrix w.r.t node A*/
 void print_topology_A(int graph[V][V],int i, int j){
 	switch(j) {
 	case 0: printf("AA\t\t%d\n",graph[i][j]);
@@ -147,6 +152,7 @@ void print_topology_A(int graph[V][V],int i, int j){
 	}
 }
 
+/*This particular function is used to print the adjacency matrix w.r.t node B*/
 void print_topology_B(int graph[V][V],int i, int j){
 	switch(j) {
 	case 0: break;
@@ -160,6 +166,7 @@ void print_topology_B(int graph[V][V],int i, int j){
 	}
 }
 
+/*This particular function is used to print the adjacency matrix w.r.t node C*/
 void print_topology_C(int graph[V][V],int i, int j){
 	switch(j) {
 	case 0:
@@ -172,6 +179,7 @@ void print_topology_C(int graph[V][V],int i, int j){
 	}
 }
 
+/*This particular function is used to print the adjacency matrix w.r.t node D*/
 void print_topology_D(int graph[V][V],int i, int j){
 	switch(j) {
 	case 0:
@@ -183,6 +191,7 @@ void print_topology_D(int graph[V][V],int i, int j){
 	}
 }
 
+/*This particular function is used to print the adjacency matrix.*/
 void print_topology(int graph[V][V]) {
 	int i,j;
 	printf("Edge---------Cost\n");

@@ -10,10 +10,12 @@
 
 #include <arpa/inet.h>
 
+/*This is the static TCP port number of the client*/
 #define PORT "25251" // the port client will be connecting to
 
 #define MAXDATASIZE 100
 
+/*This is the static UDP port nubmer of the serverC*/
 #define MYPORT "23251"	// the port users will be connecting to
 
 // get sockaddr, IPv4 or IPv6:
@@ -26,6 +28,7 @@ void *get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+/*This particular function is used to print the adjacency matrix w.r.t node A*/
 void print_topology_A(int graph[4][4],int i, int j){
 	switch(j) {
 	case 0: printf("AA\t\t%d\n",graph[i][j]);
@@ -40,6 +43,7 @@ void print_topology_A(int graph[4][4],int i, int j){
 	}
 }
 
+/*This particular function is used to print the adjacency matrix w.r.t node B*/
 void print_topology_B(int graph[4][4],int i, int j){
 	switch(j) {
 	case 0: break;
@@ -53,6 +57,7 @@ void print_topology_B(int graph[4][4],int i, int j){
 	}
 }
 
+/*This particular function is used to print the adjacency matrix w.r.t node C*/
 void print_topology_C(int graph[4][4],int i, int j){
 	switch(j) {
 	case 0:
@@ -65,6 +70,7 @@ void print_topology_C(int graph[4][4],int i, int j){
 	}
 }
 
+/*This particular function is used to print the adjacency matrix w.r.t node D*/
 void print_topology_D(int graph[4][4],int i, int j){
 	switch(j) {
 	case 0:
@@ -76,6 +82,7 @@ void print_topology_D(int graph[4][4],int i, int j){
 	}
 }
 
+/*This particular function is used to print the adjacency matrix.*/
 void print_topology(int graph[4][4]) {
 	int i,j;
 	printf("Edge---------Cost\n");

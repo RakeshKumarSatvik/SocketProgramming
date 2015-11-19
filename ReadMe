@@ -52,8 +52,12 @@ serverD.c -> serverD.txt
 f. Each of these servers send their neighboring information in the form of a 1x4 matrix. Once the client receives all the information from 
 the servers it sends the network topology to all the servers in a 4x4 matrix format.
 
-g. The project fails if the server is ran first. The basic assumption while developing this particular assignment is that the client is ran
-first followed by the servers.
+g. 
+1. The project fails if the server is ran first. The basic assumption while developing this particular assignment is that the client is ran
+   first followed by the servers.
+2. If there is more than four servers in the network.
+3. If the file name that is being read is of different format or different filename.
+
 
 h. Have referred beej code mentioned in the guidelines for the basic functionality. Code has been changed and optimized according to 
 the requirement. The hostname for client is referred using http://www.retran.com/beej/gethostbynameman.html. The MST algorithm is adapted
