@@ -9,7 +9,6 @@ the server and compute the Minimum spanning tree.
 
 In the initial phase where the servers are sending their neighboring information, it is TCP communication. Once the client has all the 
 required information, it uses UDP communication to transmit the topology across to all the Servers.
-
 The servers will communicate with the client using TCP sockets. The client will communicate with the servers using UDP sockets.
 
 d. client.c
@@ -22,8 +21,25 @@ serverA.c/serverB.c/serverC.c/serverD.c
 Once the server boots up, it reads the corresponding file and gets updated on the neighboring information. It computes an array over the 
 information gathered. Then it creates a TCP socket to transfer the neighboring information to the client. After it sends the information it
 creates a UDP socket and keeps on waiting until it gets a message. Once the client sends the network topology to the server, it prints the
-topology index accordingly.
+topology edge and cost accordingly.
 
+Makefile
+If you give the command 'make' it builds all the source files and corresponding executables. If the make command is followed by clean, it
+cleans up all the executables.
+
+Functioanlity of each files:
+Makefile    : It is used to compile all the source files.
+serverA.c   : It communicates with client to send the neighbor information of node A and receive the network topology from client.
+serverB.c   : It communicates with client to send the neighbor information of node B and receive the network topology from client.
+serverC.c   : It communicates with client to send the neighbor information of node C and receive the network topology from client.
+serverD.c   : It communicates with client to send the neighbor information of node D and receive the network topology from client.
+client.c    : It receives the neighboring information from all the servers and depending on that information, it forms the network topology
+			  and sends it across to all the servers. It finally calculates the minimum spanning tree and displays the cost.
+serverA.txt : Neighboring information for node A.
+serverB.txt : Neighboring information for node B.
+serverC.txt : Neighboring information for node C.
+serverD.txt : Neighboring information for node D.
+ 
 e. TA should run 'make' from the folder where you unzip all my files. [client.c,serverA.c,serverB.c,serverC.c,serverD.c,Makefile] Once 
 you call the make command, it will generate the corresponding executable [serverA.out,serverB.out,serverC.out,serverD.out]. You need 
 to run ./client.out and followed by the servers in order. The main assumption while writing this code is that 'client.out' will be ran first
@@ -33,4 +49,12 @@ serverB.c -> serverB.txt
 serverC.c -> serverC.txt
 serverD.c -> serverD.txt
 
-f. Servers 
+f. Each of these servers send their neighboring information in the form of a 1x4 matrix. Once the client receives all the information from 
+the servers it sends the network topology to all the servers in a 4x4 matrix format.
+
+g. The project fails if the server is ran first. The basic assumption while developing this particular assignment is that the client is ran
+first followed by the servers.
+
+h. Have referred beej code mentioned in the guidelines for the basic functionality. Code has been changed and optimized according to 
+the requirement. The hostname for client is referred using http://www.retran.com/beej/gethostbynameman.html. The MST algorithm is adapted
+from http://www.geeksforgeeks.org/greedy-algorithms-set-5-prims-minimum-spanning-tree-mst-2/.

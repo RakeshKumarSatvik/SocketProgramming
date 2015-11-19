@@ -206,7 +206,8 @@ void print_topology(int graph[V][V]) {
 }
 
 /*Have referred beej code mentioned in the guidelines for the basic
- * functionality. Code has been changed and optimized according to the requirement.*/
+ * functionality. Code has been changed and optimized according to the requirement.
+ * The hostname is referred using http://www.retran.com/beej/gethostbynameman.html*/
 int main(void)
 {
 	int temp[V], topology[V][V]/*, adjacency[V][V]*/;
